@@ -1,4 +1,4 @@
-# GillSoft.XmlComparer
+# CG.XmlComparer
 Library for comparing and Patching (work in progress) XML files
 
 Using this library, XML files can be compared using DOM elements instead of pure text.
