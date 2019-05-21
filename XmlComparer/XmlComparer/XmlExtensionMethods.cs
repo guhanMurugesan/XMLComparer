@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GillSoft.XmlComparer;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,6 +12,9 @@ namespace XmlComparer
 {
     public static class XmlExtensionMethods
     {
+        public static Dictionary<XElement, string> XpathCollection = new Dictionary<XElement, string>();
+        public static Dictionary<XElement, string> XpathNoCondCollection = new Dictionary<XElement, string>();
+
         public static string FQN(this XAttribute element)
         {
             if (element == null)
@@ -63,13 +67,16 @@ namespace XmlComparer
             if (element == null)
                 return string.Empty;
 
+            //if (XpathCollection.ContainsKey(element))//retriving from stored results
+              //  return XpathCollection[element];
+
             if (element == element.Document.Root)
             {
                 var s = "/" + element.FQN();
                 return s;
             }
 
-            var kvParent = element.Parent.GetBestKeyValueInfo();
+            KeyValueElementInfo kvParent = null;
 
             var res = element.Parent.GetXPath(kvParent) + "/" + element.FQN();
 
@@ -92,13 +99,20 @@ namespace XmlComparer
                 }
             }
 
+            //XpathCollection.Add(element, res);
+
             return res;
+        }
+
+        public static int GetLevel(this string value)
+        {
+            var levels = value.Split('/').Count();
+            return levels;
         }
 
 
         public static string GetTrimmedXPath(this string xPath)
         {
-            var length = 2;
             var xPathTrimmed = xPath.Substring(0,xPath.LastIndexOf("ns")-1);
             return xPathTrimmed;
         }
@@ -161,5 +175,48 @@ namespace XmlComparer
             return res;
         }
 
+        public static string TruncateChildren(this XElement element)
+        {
+            var value = element.ToString();
+            return value.Split('>')[0];
+        }
+
+
+        public static bool CompareImmediateParent(this string xPath1, string xPath2)
+        {
+            if (xPath1.GetParentIgnoreCondition().Equals(xPath2.GetParentIgnoreCondition()))
+                return true;
+            return false;
+        }
+
+        public static string GetParentIgnoreCondition(this string textLine)
+        {
+            textLine = textLine.Substring(textLine.LastIndexOf("/ns"), textLine.Length - textLine.LastIndexOf("/ns"));
+            var attributes = textLine.Substring(textLine.IndexOf('[') + 1, textLine.Length - textLine.IndexOf('[') - 1) + " ";
+            var splits = attributes.Split('@');
+            return string.Format("{0}+{1}+{2}", textLine.Substring(textLine.IndexOf(":") + 1, textLine.IndexOf('[') == -1 ? textLine.Length - textLine.IndexOf(":") - 1 : textLine.IndexOf('[') - textLine.IndexOf(':') - 1),
+                    XPathComparer.GetTagValue(splits, "Name"), XPathComparer.GetTagValue(splits, "Type"));
+        }
+
+        public static string TrimAtribute(this string value)
+        {
+            int i = 0;
+            int firstindex = value.LastIndexOf("@Condition");
+            if (firstindex == -1)
+                return value;
+            int lastindex = 0;
+            i= firstindex+1;
+            while (i < value.Length)
+            {
+                if (value[i] == '@')
+                {
+                    lastindex = i;
+                    break;
+                }
+                i++;
+            }
+
+            return value.Replace(value.Substring(firstindex,(i-1) - firstindex),"");
+        }
     }
 }

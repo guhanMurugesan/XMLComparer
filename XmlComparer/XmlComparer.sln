@@ -5,6 +5,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmlComparer", "XmlComparer\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmlComparer.ConsoleApp", "XmlComparer.ConsoleApp\XmlComparer.ConsoleApp.csproj", "{405053C5-3CD0-473A-A428-529878FE0763}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileComparer.UI", "FileComparer.UI\FileComparer.UI.csproj", "{2DE0A043-9D2E-4CC2-BB3D-EC9B3C0DBC38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestComparer", "TestComparer\TestComparer.csproj", "{A6196F29-A66B-415C-8B29-1324AE3BC40A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +23,14 @@ Global
 		{405053C5-3CD0-473A-A428-529878FE0763}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{405053C5-3CD0-473A-A428-529878FE0763}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{405053C5-3CD0-473A-A428-529878FE0763}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DE0A043-9D2E-4CC2-BB3D-EC9B3C0DBC38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DE0A043-9D2E-4CC2-BB3D-EC9B3C0DBC38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DE0A043-9D2E-4CC2-BB3D-EC9B3C0DBC38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DE0A043-9D2E-4CC2-BB3D-EC9B3C0DBC38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6196F29-A66B-415C-8B29-1324AE3BC40A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6196F29-A66B-415C-8B29-1324AE3BC40A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6196F29-A66B-415C-8B29-1324AE3BC40A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6196F29-A66B-415C-8B29-1324AE3BC40A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

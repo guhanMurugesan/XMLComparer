@@ -1,0 +1,3176 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+
+<!-- Modifying this file will result in a NVRAM clear -->
+
+<Objects xmlns="http://tempuri.org/Objects.xsd"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://tempuri.org/Objects.xsd ../BallyTech.Utility/Configuration/Objects.xsd">
+
+  <Object Name="Schedule" Type="BallyTech.Utility.Time.Schedule, BallyTech.Utility" />
+
+  <Object Name="EgmLockHandler" Type="BallyTech.Gtm.Core.EgmLockHandler, BallyTech.Gtm.Core">
+    <Property Name="Egm" Ref="EgmModel"/>
+  </Object>
+  <Object Name="FloorServiceModel" Type="BallyTech.FloorService.FloorServiceModel, BallyTech.FloorService">
+    <Property Name="EgmModel" Ref="EgmModel"/>
+    <Property Name="FloorServiceHost" Value="http://ballyweb.bally.systems/FloorServices/FloorService.asmx"/>
+    <Property Name="G2SHost" Value="http://ballyweb.bally.systems/G2SWS/Service.asmx"/>
+    <Property Name="ManufacturerCode" Value="IVW" />
+    <Property Name="ManufacturerName" Value="iView Default - Not from FloorService" />
+  </Object>
+  <Object Name="MaxCreditLimitHandler" Type="BallyTech.Gtm.Core.EgmMaxCreditLimit.MaxCreditLimitHandler, BallyTech.Gtm.Core">
+		<Property Name="Egm" Ref="EgmModel"/>
+  </Object>
+
+  <Object Condition="$EgmProtocol == 'XSeries'" Name="EgmModel" Type="BallyTech.Nsw.Model.NswModel, BallyTech.Nsw">
+    <Property Name="Schedule" Ref="Schedule"/>
+    <Property Name="MaxBet" Value="100"/>
+    <Property Name="ProgressiveCcceAwardLimit" Value="300000" />
+    <Property Name="AllowMixedCreditFundTransfer" Value="False"/>
+	<Property Name="TicketPrinterLimit" Value="2000"/>
+	<Property Name ="MaxCreditLimitHandler" Ref="MaxCreditLimitHandler"/>
+    <Property Name="Snapshot">
+      <Object Name="MixedCreditDepositSnapshot" Type="BallyTech.Nsw.Model.Devices.MixedCreditDepositSnapshot,BallyTech.Nsw">
+        <Property Name="CanDepositCashable" Value="True" />
+        <Property Name="CanDepositNonCashable" Value="False" />
+      </Object>
+    </Property>
+	<Property Name="FundTransferLimitRuleCollection">
+			<Object Type="BallyTech.Nsw.Model.Specifications.TransferLimitSpecifications.FundTransferLimitRuleCollection,BallyTech.Nsw">
+			<Property Name="TransferLimitRules">
+				<List>
+					<Object Name="MaxFundTransferLimitRule" Type="BallyTech.Nsw.Model.Specifications.TransferLimitSpecifications.iVISTAConfigurableFundTransferMaxCreditLimitSpecification,BallyTech.Nsw"/>
+				</List>
+			</Property>
+		</Object>
+	</Property>
+    <Property Name="ShouldAttemptCentTransfer" Value ="False"/>
+    <Property Name="GameIdleWaitTime" Value ="00:02:00"/>
+    <Property Name="ShouldDisableGameOnAutoDeposit" Value="False"/>
+	<Property Name="PdbWaitTime" Value ="00:00:20"/>
+	<Property Name="ShouldWaitForPdb" Value ="true"/>
+    <Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+    <Property Name ="GameLockedByGameModule">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="GameLockedByGameModule"/>
+      </Object>
+    </Property>
+    <Property Name="BonusAmountRoundingType" Value="FLOOR" />    <!--FLOOR/CEIL/NONE-->
+    <Property Name="IsNonCashableBonusAllowed" Value="true" />
+    <Property Name="IsMysteryProgressiveTransferAsCCCE" Value="true" /> <!--this will be used if Extened CCCE support machines want to transfer as CCCE transfer-->  
+  </Object>
+  <Object Condition="$EgmProtocol == 'Sas'" Name="EgmModel" Type="BallyTech.Sas.Model.SasModel, BallyTech.Sas">
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="FloorService" Ref="FloorServiceModel"/>
+    <Property Name="TryEnableMultiGame" Value="true" />
+	<Property  Condition="$Server == 'Acsc-GNS'" Name="IsZeroAmountTransferSupported" Value="true" />
+    <Property Name="TryEnableMultiGameMeters" Value="true" />
+    <Property Name="TryEnableMultiDenomination" Value="true" />
+    <Property Name="TryEnableExtendedMeters" Value="true" />
+    <Property Name="ExceptionFloodCount" Value="10"/>
+    <Property Name="AllowCashoutOnGameDisable" Value="false"/>
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel"/>
+    <Property Name="MaxLockRetry" Value="100" />
+	<!--<Property Name="PoolIDForNonRestrictedFundTransfer" Value="0" />-->
+    <!--<Property Name="BackgroundMeterPollingIntervalInSecond" Value="0" />
+    <Property Name="PollMeterOlderThanInSecond" Value="600" />
+    <Property Name="UseExtendedTicketDataPollToSetTicketDetails" Value="false" />
+    <Property Name="SendCardInformationPollAfterGameEnd" Value="false" />-->
+    <Property Name="EftOutCreditType" Value="Cashable" />
+    <Property Name ="MaxCreditLimitHandler" Ref="MaxCreditLimitHandler"/>
+    <Property Name="IgnoreGamereportedProgressiveAmount" Value="false"/>
+    <Property Name="CanUpdateCreditMeterOnDepositFailure" Value="true"/>
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel"/>
+    <Property Name="ProgressiveDevice">
+      <Object Name="ProgressiveDevice" Type="BallyTech.Sas.Model.LinkedProgressiveDevice,BallyTech.Sas">
+        <Property Name="Model" Ref="EgmModel"/>
+        <Property Name="IsMultipleLevelSupported" Value="true"/>
+        <Property Condition="$SelectedOption == 'OptionA'" Name="IsMultipleLevelSupported" Value="false"/>
+        <!-- <Property Name="BroadcastAddress" Value="1"/> -->
+      </Object>
+    </Property>
+    <Property Name="AftLockQueryRefresher">
+      <Object Name="AftLockQueryRefresher" Type="BallyTech.Sas.Model.AftLockRefresher,BallyTech.Sas">
+        <Property Name="Model" Ref="EgmModel"/>
+      </Object>
+    </Property>
+    <Property Name="FundTransferInitializer">
+      <Object Name="FundTransferInitializer" Type="BallyTech.Sas.Model.FundTransferInitializer,BallyTech.Sas">
+        <Property Name="FundTransfer" Ref="FundTransferType"/>
+      </Object>
+    </Property>
+    <Property Name="Snapshot">
+      <Object Name="EftCustomDespositSnapshot" Type="BallyTech.Sas.Model.EftCustomDespositSnapshot,BallyTech.Sas">
+        <Property Name="CanDepositCashable" Value="true" />
+        <Property Condition="$Server == 'Sds'" Name="CanDepositNonCashable" Value="true" />
+      </Object>
+    </Property>
+    <Property Condition="$SelectedOption == 'OptionA'"  Name="ShouldDependOnProgressiveHitException" Value="false"/>
+    <Property Name="WagerCategory">
+      <Object Name="WagerCategory" Type="BallyTech.Sas.Model.WagerCategoryHandler,BallyTech.Sas">
+        <Property Name="Model" Ref="EgmModel"/>
+        <Property Name="WagerCategorySchedule">
+          <Object Name="WagerCategorySchedule" Type="BallyTech.Sas.Model.WagerCategoryScheduleItem,  BallyTech.Sas">
+            <Property Name="Schedule" Ref="Schedule" />
+            <Property Name="Model" Ref="EgmModel"/>
+          </Object>
+        </Property>
+      </Object>
+    </Property>
+    <Property Name="BackgroundMeterPollingScheduler">
+      <Object Name="BackgroundMeterPollingScheduler" Type="BallyTech.Sas.BackgroundMeterPollingScheduler,BallyTech.Sas">
+        <Property Name="Model" Ref="EgmModel"/>
+      </Object>
+    </Property>
+  </Object>
+  
+  <Object Condition="$Server == 'Sds' and $EgmProtocol == 'Sas'  and ($PlayerType == 'LegacyECash' or $CardReader == 'Kcsm')" Name="FundTransferType" Type="BallyTech.Sas.Model.EftFundsTransfer,BallyTech.Sas">
+    <Property Name="Model" Ref="EgmModel"/>
+  </Object>
+  <Object Condition="$Server == 'Sds' and $EgmProtocol == 'Sas' and $PlayerType == 'Cashless'" Name="FundTransferType" Type="BallyTech.Sas.Model.MixedTypeFundsTransfer,BallyTech.Sas">
+    <Property Name="Model" Ref="EgmModel"/>
+  </Object>
+  <Object Condition="$Server == 'Sds' and $EgmProtocol == 'Sas' and $PlayerType == 'SmartCashless'" Name="FundTransferType"  Type="BallyTech.Sas.Model.CashableEftFundsTransfer,BallyTech.Sas">
+    <Property Name="Model" Ref="EgmModel"/>
+  </Object>
+  
+   <Object Condition="$Server == 'Acsc-GNS' and $EgmProtocol == 'Sas'" Name="FundTransferType" Type="BallyTech.Sas.Model.EftFundsTransfer,BallyTech.Sas">
+    <Property Name="Model" Ref="EgmModel"/>
+  </Object>
+
+   <Object Condition="$PlayerType == 'LegacyECash' and $Server == 'Sds'" Name="AutoFullDownloadHandler" Type="BallyTech.Sds.Model.AutoFullDownloadHandler,BallyTech.Sds">
+    <Property Name="PlayerTrackingSystem" Ref="PlayerTrackingSystem"/>
+    <Property Name="IdReader" Ref="IdReader"/>
+    <Property Name="AccountAccessor" Ref="AccountAccessProvider"/>
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="BonusingSession" Ref="EliteBonusingClientModel"/>
+  </Object>
+
+  <Object Condition="$EgmProtocol == 'Asp'" Name="EgmModel" Type="BallyTech.Asp.Model.AspModel, BallyTech.Asp">    
+    <Property Name="ServiceButtonMappedToReserve" Value="True" />
+    <Property Name="CashlessMode" Value="False" />
+    <Property Name="IsThirdPartyControllerSupported" Value="False" />
+    <Property Name ="ROMSignaturePolynomial" Value ="4129" />
+    <Property Name="ShouldWaitForGameIdle" Value="True"/>
+	<Property Name="ShouldIncrementTransactionForMixedDeposit" Value="True" />
+    <Property Name="DefaultTokenDenomination" Value="2" />
+    <Property Name="SupportMixedCreditTransfer" Value="True" />
+    <Property Name="DisconnectDebounceTime" Value="0:00:30" />
+    <Property Name="TimeSyncInterval" Value="00:15:00" />
+    <Property Name ="MaximumTicketOutAmount" Value ="999800" />
+    <Property Name ="MinimumTicketOutAmount" Value ="0"/>
+    <Property Name ="MinimumPayoutDenomination" Value ="0" />
+    <Property Name ="JackpotWinLimitPaidToCreditMeter" Value ="999999" />
+    <Property Name ="LimitToDisableBills" Value ="600000" />
+    <Property Name ="CalculateNonCashableWager" Value="True" />
+    <Property Name ="EnableScheduledMeterPoll" Value="False" />
+    <Property Name ="EgmMeterPollInterval" Value="0:01:00" />
+    <!--<Property Name ="IsControlCommandEnable" Value="False" />-->
+    <Property Name ="EnableScheduledEgmPaidMeterPoll" Value="True" />
+    <Property Name ="RequestCreditMeterBreakdown" Value="True" />
+    <Property Name ="BonusAwardEventsubscriptionRequired" Value="True" />
+    <Property Name ="BonusAmountWinLimitPayToEGM" Value="3000" />
+    <Property Name="ShouldSendLinkedProgressiveAward" Value="True" />
+    <Property Name ="MaximumTicketInAmount" Value ="50000" /><!-- To set Maximum Ticket-In amount in the game -->
+    <Property Name="Schedule" Ref="Schedule"/>
+    <Property Name="FilterExcludedDeviceList">
+      <List ItemType="BallyTech.Asp.Messages.DeviceKey,BallyTech.Asp">
+        <Object>
+          <Property Name="DeviceClass" Value="06" />
+          <!--Class 06 = Security-->
+          <Property Name="DeviceType" Value="01" />
+          <!--Type 01 = Logic Seal-->
+        </Object>
+        <Object>
+          <Property Name="DeviceClass" Value="06" />
+          <!--Class 06 = Security-->
+          <Property Name="DeviceType" Value="02" />
+          <!--Type 01 = EGM Door-->
+        </Object>
+      </List>
+    </Property>
+	<Property Name="ControlCommandScheduler">	
+		<Object Name="ControlCommandScheduler" Type="BallyTech.Asp.Model.ControlCommandScheduler, BallyTech.Asp">
+			<Property Name="Model" Ref="EgmModel"/>
+			<Property Name="RetransmitInterval" Value="00:00:27"/>
+  </Object>
+    </Property>
+    <Property Name="Schedule" Ref="Schedule"/>
+	<Property Name ="MaxCreditLimitHandler" Ref="MaxCreditLimitHandler"/>
+	<Property Name="MeterUpdateScheduler">	
+		<Object Name="MeterUpdateScheduler" Type="BallyTech.Asp.Model.MeterUpdateScheduler, BallyTech.Asp">
+			<Property Name="Model" Ref="EgmModel"/>
+			<Property Name="MaxWaitTimeForMeterUpdate" Value="00:00:02"/>
+		</Object>
+    </Property>
+	 <Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+   <Property Name ="GameLockedByProgressiveDevice">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="ProgressiveDevice"/>
+      </Object>
+    </Property>
+  </Object>
+
+  <Object Condition="$EgmProtocol == 'Grips'" Name="EgmModel" Type="BallyTech.Grips.Model.GripsEgmModel, BallyTech.Grips">
+    <Property Name ="IdReader" Ref ="PhysicalIdReader"/>
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel"/>
+  </Object>
+
+<Object Condition="$CardReader == 'Pcsc' and ($PlayerType == 'LegacyECash' or $PlayerType == 'Cashless') and $EgmProtocol != 'Cdk'" Name="PhysicalIdReader" Type="BallyTech.SmartCard.Model.MagCardModel, BallyTech.SmartCard" >
+    <Property Name="MaxLatchRetries" Value="10" />
+    <!--Use this to read Track 1 data-->
+    <Property Name="TrackOptionConfigured" Value="31" />
+    <!--Use this to read Track 2 data-->
+    <!--<Property Name="TrackOptionConfigured" Value="32" />-->
+    <!--Use this to read Track 1 and Track 2 data-->
+    <!--<Property Name="TrackOptionConfigured" Value="33" />-->
+
+    <Property Name="MagCardInfo">
+      <Object Name="CardStatus" Type="BallyTech.SmartCard.Model.MagCardInfo,BallyTech.SmartCard">
+      </Object>
+    </Property>
+    <Property Name="CustomerNumber">
+      <Object Name="MagneticCardNumber" Type="BallyTech.SmartCard.Model.MagneticCardNumber,BallyTech.SmartCard">
+        <Property Name="RegularExpression" Value="[%]([^?]*)[?]" />
+        <Property Name="GroupIndex" Value="1" />
+      </Object>
+    </Property>
+  </Object>
+  <Object Condition="$EgmProtocol == 'Sas'" Name="EgmErrorNotifier" Type="BallyTech.Sas.Model.EgmErrorNotifier,BallyTech.Sas">
+    <Property Name="Model" Ref="EgmModel"/>
+  </Object>
+  <Object Name="MezzanineModel" Type="BallyTech.MtCharleston.Model.MezzanineModel, BallyTech.MtCharleston">
+     <Property Name="SubscribeToHealthSensors" Value="false" />
+  </Object>
+  <Object Condition="$EgmProtocol == 'IDP'" Name="MeterTracker" Type="BallyTech.IDP.Client.Model.Meters.MeterTracker, BallyTech.IDP.Client" />
+  <Object Condition="$EgmProtocol == 'IDP'" Name="EgmModel" Type="BallyTech.IDP.Client.Model.IDPModel, BallyTech.IDP.Client">
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel"/>
+	<Property Name="IsNewLMOInterfaceServer" Value="true"/>
+    <Property Name="MeterRequestIntervalinMilliSeconds" Value="60000"/>
+    <Property Name="Schedule" Ref="Schedule"/>
+    <Property Name="HoperDenomination" Value="100"/><!-- it should be in cents-->
+    <Property Name="TicketsSupported" Value="false"/>
+	<Property Name ="MaxCreditLimitHandler" Ref="MaxCreditLimitHandler"/>
+	<Property Name="MeterUpdateManager"> 
+		<Object  Name="MeterUpdateManager" Type="BallyTech.IDP.Client.Model.Meters.MeterUpdateManager, BallyTech.IDP.Client" >
+			<Property Name="MeterTracker" Ref="MeterTracker"/> 	  
+			<Property Name="MeterValidators"> 
+			  <List>
+				<Object Name="MeterSteadyOrIncreasingValidator" Type="BallyTech.IDP.Client.Model.Validators.MeterSteadyOrIncreasingValidator, BallyTech.IDP.Client">
+					<Property Name="MeterTracker" Ref="MeterTracker"/>
+				</Object>
+				<Object Name="MeterDecreaseAndSteadyValidator" Type="BallyTech.IDP.Client.Model.Validators.MeterDecreaseAndSteadyValidator, BallyTech.IDP.Client">
+					<Property Name="MeterTracker" Ref="MeterTracker"/>
+				</Object>
+				<Object Name="MeterSpikeValidator" Type="BallyTech.IDP.Client.Model.Validators.MeterSpikeValidator, BallyTech.IDP.Client">
+					<Property Name="MeterTracker" Ref="MeterTracker"/>
+				</Object>
+				<Object Name="MeterSteadyAndChangeValidator" Type="BallyTech.IDP.Client.Model.Validators.MeterSteadyAndChangeValidator, BallyTech.IDP.Client">
+					<Property Name="MeterTracker" Ref="MeterTracker"/>
+				</Object>
+				<!--Please ensure that MeterUnstableValidator is always the last element in the list of MeterValidators -->
+				<Object Name="MeterUnstableValidator" Type="BallyTech.IDP.Client.Model.Validators.MeterUnstableValidator, BallyTech.IDP.Client"> 
+				  <Property Name="MeterTracker" Ref="MeterTracker"/>
+				</Object>
+			  </List>
+			</Property>
+			<Property Name="CabinetMeterValidationFilter">	
+			   <List ItemType="BallyTech.IDP.Client.Model.Meters.CabinetMeterType, BallyTech.IDP.Client">
+				<Value>AmountInHopper</Value>           
+			  </List> 
+			</Property> 
+		</Object>
+	</Property>
+   </Object>
+  <!--Objects required to initialize SoftGmu-Acsc-->
+  <Object Condition="$Server == 'Acsc-GNS'" Name="AcscModel" Type="BallyTech.Acsc.Core.Model.AcscModel, BallyTech.Acsc.Core">
+    <Property Name ="Egm" Ref ="EgmModel"/>
+    <Property Name ="GameLink" Ref ="EgmModel"/>
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel"/>
+    <Property Name="AssetNumberMaxValue" Value="65534"/>
+    <Property Name="MaxWithdrawLimit" Value="65535"/>
+    <Property Name="CashableMaxDepositLimit" Value="65535"/>
+    <Property Name="NtCodeVersion" Value="12310"/>
+    <Property Name="DefaultCorporateId" Value="B"/>
+    <Property Name="DefaultPropertyId" Value="1"/>
+    <Property Name="IsUniversalCardSupported" Value="true"/>
+    <Property Name="IsUniversalPlayerAccountSupported" Value="false"/>
+    <Property Name ="OffLineDoorStatusListener" Ref="DoorStatusModel"/>
+    <Property Name="Illumination" Ref ="PhysicalIdReader"/>
+    <Property Name="OffLineDoorStatusListener" Ref ="DoorStatusModel"/>
+    <Property Name="Player" Ref ="PlayerTrackingSystem"/>
+    <Property Name="SupportedBillDenominations" Value="1,5,10,20,50,100"/>
+    <Property Name="CoinInCoinOutNegativeDeltaMeterLimit" Value="1000000"/>
+    <Property Name="CoinDropAndHandlePullNegativeDeltaMeterLimit" Value="1000000"/>
+    <Property Name="CountNegativeDeltaMeterLimit" Value="10000"/>
+    <Property Name="CountTotalBillsNegativeDeltaMeterLimit" Value="1000000"/>
+    <Property Name="CouponRedeemedValueNegativeDeltaMeterLimit" Value="100000000"/>
+    <Property Name="OneCentGameNegativeDeltaMeterLimit" Value="6553500"/>
+    <Property Name="NonOneCentGameNegativeDeltaMeterLimit" Value="6553500"/>
+    <Property Name="DefaultMeterModulus" Value="10000000000"/>
+    <Property Name="CanSetEgmDateTime" Value="true"/>
+	<Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+	<Property Name="AlternateAccountLookup" Ref="AlternateAccountLookup"/>
+	<Property Name="RequestScheduler" Ref="RequestScheduler"/>
+	<Property Name="volumeController" Ref="VolumeController"/>
+    <Property Name="BillRecorder">
+      <Object Name="BillRecorder" Type="BallyTech.Acsc.Core.Model.TransactionRecorder.BillRecorder, BallyTech.Acsc.Core"/>
+    </Property>
+    <Property Name="TiltRecorder">
+      <Object Name="TiltRecorder" Type="BallyTech.Acsc.Core.Model.TransactionRecorder.TiltRecorder, BallyTech.Acsc.Core"/>
+    </Property>
+    <Property Name="Employee" Ref ="EmployeeTrackingSystem"/>
+    <Property Name="IsBillInsertReportingEnabled" Value="false"/>
+    <Property Name="AccountService">
+      <Object Name="AccountService" Type="BallyTech.Acsc.Core.Model.FundsTransfer.BankProvider.AccountService, BallyTech.Acsc.Core">
+        <Property Name="Model" Ref="AcscModel" />
+      </Object>
+    </Property>
+    <Property Name="FundsTransferDevice">
+      <Object Name="FundsTransferDevice" Type="BallyTech.Acsc.Core.Model.FundsTransfer.FundsTransferDevice, BallyTech.Acsc.Core">
+        <Property Name="Model" Ref="AcscModel"/>
+        <Property Name ="Egm" Ref ="EgmModel"/>
+        <Property Name ="FundsDepositRecorder">
+          <Object Name="FundsDepositRecorder" Type="BallyTech.Acsc.Core.Model.TransactionRecorder.FundsDepositRecorder, BallyTech.Acsc.Core"/>
+        </Property>
+        <Property Name ="FundsWithdrawRecorder">
+          <Object Name="FundsWithdrawRecorder" Type="BallyTech.Acsc.Core.Model.TransactionRecorder.FundsWithdrawRecorder, BallyTech.Acsc.Core"/>
+        </Property>
+      </Object>
+    </Property>
+    <Property Name="DoorEventHandler">
+      <Object Name="DoorEventHandler" Type="BallyTech.Acsc.Core.Model.Door.DoorEventHandler,BallyTech.Acsc.Core">
+        <!--DebounceType =1 =>Check and debounce given specific trans
+       DebounceType =2 =>Debounce normally
+       DebounceType =0 =>No Debouncing-->
+        <Property Name="Model" Ref="AcscModel" />
+        <Property Name="DebounceTypeForCashBoxDoor" Value="2"/>
+        <Property Name="DebounceTypeForSlotDoor" Value="1"/>
+        <Property Name="DebounceTypeForDropDoor" Value="1"/>
+        <Property Name="DebounceTypeForHopperFillDoor" Value="1"/>
+        <Property Name="DebounceTypeForCashBoxInOut" Value="0"/>
+        <Property Name="LogicDoorEventReportingRunTimeOption" Value="false"/>
+	<Property Name="DebounceTypeForEgmPower" Value="1"/>
+      </Object>
+    </Property>
+    <Property Name="TicketAcceptorConfiguration">
+      <Object Name="TicketAcceptorConfiguration" Type="BallyTech.Acsc.Core.Model.Ticketing.TicketAcceptorConfiguration,BallyTech.Acsc.Core">
+        <Property Name="IsPowerCouponEnabled" Value="true"/>
+        <Property Name="IsSlotTicketEnabled" Value="true"/>
+        <Property Name="IsNonRestrictedCouponSupported" Value="false"/>
+        <Property Name="ShouldMaskValidationNumber" Value="true"/>
+      </Object>
+    </Property>
+    <Property Name="TicketPrintConfiguration">
+      <Object Name="TicketPrintConfiguration" Type="BallyTech.Acsc.Core.Model.Ticketing.TicketPrintConfiguration,BallyTech.Acsc.Core">
+        <Property Name="MaxPermittedTicketAmountInADay" Value="30000"/>  <!--Default U.S in $-->
+        <Property Name="MaxPermittedTicketPrintAmountWithNoGamePlay" Value="1000"/>  <!--Default U.S in $-->
+        <Property Name="MaxAmount" Value="0"/>  <!--Zero Value determines No Maximum Ticketprint limit. Defalut U.S in $-->
+        <Property Name="TicketValidationId" Value="930"/>
+        <Property Name="IsSlotTicketEnabled" Value="true"/>
+        <Property Name="ShouldMaskValidationNumber" Value="true"/>
+      </Object>
+    </Property>
+    <Property Name="GenericButtonHandler">
+      <Object Name="GenericButtonHandler" Type="BallyTech.Acsc.Core.Model.SharedKernel.GenericButtonHandler,BallyTech.Acsc.Core">
+        <Property Name="Model" Ref="AcscModel" />
+      </Object>
+    </Property>
+    <Property Name="EgmErrorHandler">
+      <Object Name="EgmErrorHandler" Type="BallyTech.Acsc.Core.Model.EgmErrorHandler, BallyTech.Acsc.Core">
+        <Property Name="Model" Ref="AcscModel"/>
+        <Property Name="egmError" Ref="EgmErrorNotifier"/>
+      </Object>
+    </Property>
+    <Property Name="Jackpot">
+      <Object Name="Jackpot" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.Jackpot, BallyTech.Acsc.Core">
+        <Property Name="Model" Ref="AcscModel"/>
+        <Property Name="JackpotRecorder">
+          <Object Name="JackpotRecorder" Type="BallyTech.Acsc.Core.Model.TransactionRecorder.JackpotRecorder, BallyTech.Acsc.Core"/>
+        </Property>
+        <Property Name="CanJackpotAmountBeRounded" Value="true"/>
+        <Property Name="TaxableAmountLimit" Value="1200"/>
+        <Property Name="IsTaxableJackpotOverrideEnabled" Value="false"/>
+        <Property Name="JackpotMessageMatcher">
+          <Object Name="JackpotMessageMatcher" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.JackpotMessageMatcher, BallyTech.Acsc.Core">
+            <Property Name="Model" Ref="AcscModel"/>
+            <Property Name="KeyToCreditMessagePattern" Value="Jackpot Pay Accepted"/>
+          </Object>
+        </Property>
+      </Object>
+    </Property>
+    <Property Name="JackpotAuthorizer">
+      <Object Name="JackpotAuthorizer" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.JackpotAuthorizer, BallyTech.Acsc.Core">
+        <Property Name="Model" Ref="AcscModel"/>
+        <Property Name="JackpotAmountCorrectionOverrideStrategy" Ref="JackpotAmountCorrectionStragtegy4"/>
+        <Property Name="JackpotAmountCorrectionNormalStrategy" Ref="JackpotAmountCorrectionStragtegy1"/>
+        <Property Name="BonusJackpotOverrideStrategy" Ref="BonusJackpotStragtegy4"/>
+        <Property Name="BonusJackpotNormalStrategy" Ref="BonusJackpotStragtegy1"/>
+      </Object>
+    </Property>
+    <Property Name="BillsAndTicketsCountInformation">
+      <Object Name="BillsAndTicketsCountInformation" Type="BallyTech.Acsc.Core.Model.SharedKernel.BillsAndTicketsCountInformation,  BallyTech.Acsc.Core">
+        <Property Name="IsBillsAndTicketsCountReportingOn" Value="true"/>
+      </Object>
+    </Property>
+    <Property Name ="WagerCategoryHandler">
+    <Object Name="WagerCategoryHandler" Type="BallyTech.Acsc.Core.Model.WagerCategory.WagerCategoryHandler, BallyTech.Acsc.Core">	
+	<Property Name="Model" Ref="AcscModel"/>
+		<Property Name="WagerCategoryScheduleItem">
+			<Object Name="WagerCategoryScheduleItem" Type="BallyTech.Acsc.Core.Model.WagerCategory.WagerCategoryScheduleItem,  BallyTech.Acsc.Core">
+				<Property Name="Schedule" Ref="Schedule" />
+			</Object>
+		</Property>
+    </Object>
+    </Property>
+<Property Name ="GameLockedByEmployee">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="CanOverride" Value="true"/>
+        <Property Name ="Name" Value="EmployeeModule"/>
+        </Object>
+    </Property>
+<Property Name ="GameLockedByServer">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="CanOverride" Value="true"/>
+        <Property Name ="Name" Value="ACSCServer"/>
+      </Object>
+    </Property>
+  
+<Property Name ="GameLockedByPreCommitment">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="PreCommitment"/>
+      </Object>
+    </Property>
+  </Object>
+
+   <Object Name="AlternateAccountLookup" Type="BallyTech.Acsc.Core.Model.AlternateAccountLookup,BallyTech.Acsc.Core">
+    <Property Name="EmployeeSessionController" Ref="EmployeeSessionController" />	
+    <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+	<Property Name="AccountLookup" Ref="AccountLookupCoordinatorModel"/>
+	<Property Name="Model" Ref="AcscModel" />
+    <Property Name="Egm" Ref ="EgmModel"/>
+    <Property Name="Schedule" Ref="Schedule" />
+	<Property Name="NoFundTimeout" Value="00:01:00"/>
+	<Property Name="IdleTimeout" Value="00:20:00"/>
+	<Property Name="TimeoutWarning" Value="00:01:00"/>
+	<Property Name="AcceptVcaIfHostOffline" Value="false"/>
+	<Property Name="IsAacFeatureSupported" Value="true"/>
+	<Property Name="IsAlphaNumericKeyboardSupported" Value="false"/>
+	<Property Name="MinDigitsForAAC" Value="5"/>
+	<Property Name="MaxDigitsForAAC" Value="10"/>
+	<Property Name="RetryCount" Value="3"/>
+	<Property Name="CreditsToAutoClose" Value="10"/>
+  	<Property Name="Retry290IntervalInSecs" Value="5"/>
+	<Property Name="WaitTimeForTxn170InSecs" Value="5"/>
+	<Property Name="AutoCloseAacOnCashout" Value="false"/>
+  </Object>
+  
+  <Object Condition="$Server == 'Acsc-GNS'" Name="RequestScheduler" Type="BallyTech.Acsc.Core.Model.RequestScheduler,BallyTech.Acsc.Core">
+	<Property Name="Model" Ref="AcscModel" />
+    <Property Name="Schedule" Ref="Schedule" />
+   </Object>
+   
+  <Object Condition="$Server == 'Acsc-GNS'" Name ="IdReader" Type ="BallyTech.Acsc.Core.Model.Card.MagneticCardReader,BallyTech.Acsc.Core">
+    <Property Name ="PhysicalIdReader" Ref ="PhysicalIdReader"/>
+    <Property Name="PatternMatcher" Ref="PatternMatcher" />
+    <Property Name="Model" Ref="AcscModel" />
+    <Property Name="PlayerLevel">
+      <Dictionary>
+        <Entry Name="TopLevelPatron" Value="05"/>
+        <Entry Name="MidLevelPatron" Value="10"/>
+        <Entry Name="BottomLevelPatron" Value="15"/>
+      </Dictionary>
+    </Property>
+  </Object>
+
+  <Object Condition="$Server == 'Acsc-GNS'" Name="PlayerTrackingSystem" Type="BallyTech.Acsc.Core.Model.SessionManagement.Player, BallyTech.Acsc.Core">
+    <Property Name ="CardState" Ref ="IdReader"/>
+    <Property Name="Model" Ref="AcscModel" />
+    <Property Name="PlayerSessionController" Ref ="PlayerSessionController"/>
+	<Property Name ="IdReader" Ref ="IdReader"/>
+    <Property Name="IsPinRequiredForSweepStakes" Value="false"/>
+    <Property Name="IsPinRequiredForPreCommitment" Value="true"/>
+    <Property Name="RatingService" Ref="RatingService"/>
+    <Property Name="ConfiguredAccounts">
+      <Dictionary>
+        <!--*** Change the Value to rename the Account Name on Display ***-->
+        <Entry Name="PowerBank" Value="POWERBANK"/>
+        <Entry Name="PowerPromo" Value="POWERPROMO"/>
+        <Entry Name="NCCU" Value="NCCU"/>
+      </Dictionary>
+    </Property>
+    <Property Name="AcscPreCommitment">
+      <Object Name="AcscPreCommitment" Type="BallyTech.Acsc.Core.Model.PreCommitment.AcscPreCommitment, BallyTech.Acsc.Core">
+        <Property Name="Model" Ref="AcscModel" />
+		<Property Name="PreCommitmentInteraction">	
+			<Object Name="PreCommitmentInteraction" Type="BallyTech.PreCommitment.Interaction.PreCommitmentInteraction, BallyTech.PreCommitment"/>
+		</Property>
+        <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+        <Property Name="PlayerEnrollment">
+          <Object Name="PlayerEnrollment" Type="BallyTech.Acsc.Core.Model.PreCommitment.PlayerPreCommitmentEnrollment, BallyTech.Acsc.Core">
+            <Property Name="Model" Ref="AcscModel" />
+          </Object>
+        </Property>
+        <Property Name="PlayerPreCommitmentEditLimitHandler">
+          <Object Name="PlayerPreCommitmentEditLimitHandler" Type="BallyTech.Acsc.Core.Model.PreCommitment.PlayerPreCommitmentEditDeleteLimitHandler, BallyTech.Acsc.Core">
+            <Property Name="Model" Ref="AcscModel" />
+          </Object>
+        </Property>
+      </Object>      
+    </Property>    
+	<Property Name="PreCommitmentResponses">
+		<Object Name="PreCommitmentResponses" Type="BallyTech.Acsc.Core.Model.PreCommitment.PlayerPreCommitment, BallyTech.Acsc.Core">	
+			<Property Name="AcscPreCommitment" Ref="AcscPreCommitment" />
+      </Object>      
+    </Property>    
+  </Object>
+
+  <Object Condition="$Server == 'Acsc-GNS'" Name="RatingService" Type="BallyTech.Acsc.Core.Model.PatronRating.RatingService, BallyTech.Acsc.Core">
+    <Property Name="Model" Ref="AcscModel"/>
+  </Object>
+
+  <Object Condition="$Server == 'Acsc-GNS'" Name="EmployeeTrackingSystem" Type="BallyTech.Acsc.Core.Model.SessionManagement.Employee, BallyTech.Acsc.Core">
+    <Property Name ="CardState" Ref ="IdReader"/>
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="Model" Ref="AcscModel" />
+    <Property Name="EmployeeSessionController" Ref ="EmployeeSessionController"/>
+  </Object>
+
+  <Object Condition="$Server == 'Acsc-GNS'" Name="EmployeeSessionController" Type="BallyTech.Acsc.Core.Model.SessionManagement.EmployeeSessionController, BallyTech.Acsc.Core">
+    <Property Name ="IdReader" Ref ="IdReader"/>
+    <Property Name="Model" Ref="AcscModel" />
+  </Object>
+
+  <Object Condition="$Server == 'Acsc-GNS'" Name="PlayerSessionController" Type="BallyTech.Acsc.Core.Model.SessionManagement.PlayerSessionController, BallyTech.Acsc.Core">
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="Model" Ref="AcscModel" />
+    <Property Name="ShouldLockSessionForGamePlay" Value="true"/>
+    <Property Name="Egm" Ref="EgmModel" />
+    <Property Name="IdReader" Ref="IdReader" />
+    <Property Name="Link" Ref="AcscModel" />
+  </Object>
+  
+   <Object Name="CardMaskFormatter" Type="BallyTech.PlayerTerminal.CardMaskFormatter, BallyTech.PlayerTerminal">
+	<Property Condition="$CardReader == 'SmartCard'" Name="PossibleCardMaskFormat"> 
+  		<Dictionary> 
+  		  <Entry Name="9" Value="111111111"/> 
+  		  <!--<Entry Name="10" Value="0111111111"/>--> 
+  		  <Entry Name="12" Value="000111111111" /> 
+  		  <Entry Name="13" Value="0000111111111" /> 
+		</Dictionary> 
+    </Property> 
+    <Property Condition="$CardReader == 'Kcsm'" Name="PossibleCardMaskFormat"> 
+  		<Dictionary> 
+  		  <Entry Name="9" Value="111111111"/> 
+  		  <Entry Name="10" Value="0111111111"/> 
+  		  <Entry Name="12" Value="000111111111" /> 
+  		  <Entry Name="13" Value="0111111111000" /> 
+  		  <Entry Name="14" Value="00001111111111" /> 
+  		</Dictionary> 
+    </Property> 
+  </Object>
+  <Object Condition="$RtsEnabledatSite == 'true'" Name="RealTimeServiceModel" Type="BallyTech.RealTimeService.RealTimeServiceModel, BallyTech.RealTimeService">
+	<Property Name="PlayerCardMaskFormatter" Ref="CardMaskFormatter"/>  
+	<Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+	<Property Name="PlayerTrackingSystem" Ref="PlayerTrackingSystem"/>	
+    <Property Name="BuildMessageTimeInterval" Value="00:15:00"/>
+	<Property Name="MessageExpiryTime" Value="00:30:00"/>
+	<Property Name="Schedule" Ref="Schedule"/>
+	<Property Name="Egm" Ref="EgmModel"/>
+  </Object>
+  
+  <Object Condition="$Server == 'Acsc-GNS'" Name="JackpotAmountCorrectionStragtegy1" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.Strategy.CorrectionWithoutOverrideStrategy, BallyTech.Acsc.Core">
+    <Property Name="Model" Ref="AcscModel"/>
+  </Object>
+  <Object Condition="$Server == 'Acsc-GNS'" Name="JackpotAmountCorrectionStragtegy2" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.Strategy.CorrectionOverrideByTwoSuperiorStrategy, BallyTech.Acsc.Core">
+    <Property Name="Model" Ref="AcscModel"/>
+  </Object>
+  <Object Condition="$Server == 'Acsc-GNS'" Name="JackpotAmountCorrectionStragtegy3" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.Strategy.CorrectionOverrideByTwoEmployeeStrategy, BallyTech.Acsc.Core">
+    <Property Name="Model" Ref="AcscModel"/>
+  </Object>
+  <Object Condition="$Server == 'Acsc-GNS'" Name="JackpotAmountCorrectionStragtegy4" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.Strategy.CorrectionOverrideByAnyEmployeeStrategy, BallyTech.Acsc.Core">
+    <Property Name="Model" Ref="AcscModel"/>
+  </Object>
+
+  <Object Condition="$Server == 'Acsc-GNS'" Name="BonusJackpotStragtegy1" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.Strategy.BonusJackpot.BonusJackpotWithoutOverrideStragtegy, BallyTech.Acsc.Core">
+    <Property Name="Model" Ref="AcscModel"/>
+  </Object>
+  <Object Condition="$Server == 'Acsc-GNS'" Name="BonusJackpotStragtegy2" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.Strategy.BonusJackpot.BonusJackpotOverrideBySuperiorStrategy, BallyTech.Acsc.Core">
+    <Property Name="Model" Ref="AcscModel"/>
+  </Object>
+  <Object Condition="$Server == 'Acsc-GNS'" Name="BonusJackpotStragtegy3" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.Strategy.BonusJackpot.BonusJackpotOverrideByTwoEmployeesStrategy, BallyTech.Acsc.Core">
+    <Property Name="Model" Ref="AcscModel"/>
+  </Object>
+  <Object Condition="$Server == 'Acsc-GNS'" Name="BonusJackpotStragtegy4" Type="BallyTech.Acsc.Core.Model.JackpotProcessing.Strategy.BonusJackpot.BonusJackpotOverrideByAnyEmployeeStrategy, BallyTech.Acsc.Core">
+    <Property Name="Model" Ref="AcscModel"/>
+  </Object>
+  <Object Name="DoorStatusModel" Type="BallyTech.DoorStatus.DoorStatusModel,BallyTech.DoorStatus">
+	<Property Name="MainDoor">
+      <Object Type="BallyTech.DoorStatus.DoorConfiguration,BallyTech.DoorStatus">
+	  <Property Name="DoorMask" Value="Yellow" />	  
+        <Property Name="ShouldMonitorDoorStateChangeOnline" Value="true" />
+      </Object>
+    </Property>
+	<Property Name="DropDoor">
+      <Object Type="BallyTech.DoorStatus.DoorConfiguration,BallyTech.DoorStatus">
+	  <Property Name="DoorMask" Value="White" />	  
+        <Property Name="ShouldMonitorDoorStateChangeOnline" Value="true" />
+      </Object>
+    </Property>        
+	<Property Name="CashBox">
+      <Object Type="BallyTech.DoorStatus.DoorConfiguration,BallyTech.DoorStatus">
+	  <Property Name="DoorMask" Value="Red" />	  
+        <Property Name="ShouldMonitorDoorStateChangeOnline" Value="true" />
+      </Object>
+    </Property>    
+	<Property Name="LogicDoor">
+      <Object Type="BallyTech.DoorStatus.DoorConfiguration,BallyTech.DoorStatus">
+	  <Property Name="DoorMask" Value="Green" />	  
+        <Property Name="ShouldMonitorDoorStateChangeOnline" Value="true" />
+      </Object>
+    </Property>    	    
+    <Property Name="AuxillarRefillDoor">
+      <Object Type="BallyTech.DoorStatus.DoorConfiguration,BallyTech.DoorStatus">
+        <Property Name="DoorMask" Value="Green" />
+        <Property Name="ShouldMonitorDoorStateChangeOnline" Value="true" />
+      </Object>
+    </Property>
+    <Property Condition="$Server == 'Acsc-GNS'" Name="HopperFillDoor">
+      <Object Type="BallyTech.DoorStatus.DoorConfiguration,BallyTech.DoorStatus">
+        <Property Name="DoorMask" Value="Red" />
+        <Property Name="ShouldMonitorDoorStateChangeOnline" Value="true" />
+      </Object>
+    </Property>
+  </Object>
+
+  <!--These Objects required for running CDK -->
+  <Object Condition="$EgmProtocol == 'Cdk'" Name="EgmModel" Type="BallyTech.TestDrivers.MockEgm, BallyTech.TestDrivers">
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel"/>
+    <Property Name="ProtocolTypeSelected">
+      <Dictionary>
+        <Entry Name="ProtocolType" Value="SAS" />
+      </Dictionary>
+    </Property>
+  </Object>
+
+  <!--These Objects required for running CDK -->
+  <!--<Object Condition="$EgmProtocol != 'Cdk'" Name="SimpleMockEgm" Type="BallyTech.TestDrivers.SimpleMockEgm, BallyTech.TestDrivers">
+    <Property Name ="Egm" Ref ="EgmModel"/>
+  </Object>-->
+
+  <!--These Objects required for running CDK -->
+  <Object Condition="$EgmProtocol == 'Cdk' and $CardReader == 'SmartCard'" Name="PhysicalIdReader" Type="BallyTech.TestDrivers.SmartCardTestModel, BallyTech.TestDrivers" >
+    <Property Name="SmartCardTestInfo">
+      <Object Name="CardStatus" Type="BallyTech.TestDrivers.SmartCardTestInfo,BallyTech.TestDrivers">
+      </Object>
+    </Property>
+    <Property Name="FundTransferDevice">
+      <Object Name="SmartCardAccountAcessProvider" Type="BallyTech.TestDrivers.TestFundTransferDevice,BallyTech.TestDrivers">
+        <Property Name="Model" Ref="PhysicalIdReader"/>
+      </Object>
+    </Property>
+  </Object>
+  <Object Condition="$CardReader == 'SmartCard' and $EgmProtocol != 'Cdk'" Name="PhysicalIdReader" Type="BallyTech.SmartCard.Model.SmartCardModel, BallyTech.SmartCard" >
+    <Property Name="SmartCardInfo">
+      <Object Name="CardStatus" Type="BallyTech.SmartCard.Model.SmartCardInfo,BallyTech.SmartCard">
+        <Property Name="Model" Ref="PhysicalIdReader"/>
+      </Object>
+    </Property>
+    <Property Name="FundTransferDevice">
+      <Object Name="SmartCardAccountAcessProvider" Type="BallyTech.SmartCard.Model.FundTransferDevice,BallyTech.SmartCard">
+        <Property Name="Model" Ref="PhysicalIdReader"/>
+      </Object>
+    </Property>
+    <Property Name="MaxLatchRetries" Value="10" />
+  </Object>
+
+  <!-- <Object Condition="$CardReader == 'Kcsm'" Name="PhysicalIdReader" Type="BallyTech.Kcsm.Model.KcsmModel, BallyTech.Kcsm" >
+    <Property Name="EnableSessionCommand" Value="true" />
+    <Property Name="EnableSendingPeriodSessionCommand" Value="true"/>
+    <Property Condition="$Server == 'Acsc-GNS'" Name="LogoLight">
+      <Object Name="LogoLight" Type="BallyTech.Kcsm.Model.LogoLightHandler,BallyTech.Kcsm">
+        <Property Name="Schedule" Ref="Schedule" />
+        <Property Name="ToggleOnInterval" Value="00:00:03" />
+        <Property Name="ToggleOffInterval" Value="00:00:01" />
+      </Object>
+    </Property>
+  </Object> -->
+
+  <Object Name="PackageServiceModel" Type="BallyTech.PackageService.PackageServiceModel, BallyTech.PackageService">
+    <Property Name="DownloadPath" Value="%STORAGECARD%Download\" />
+    <Property Name="StoragePath" Value="%STORAGECARD%" />
+    <Property Name="ExtractPath" Value="%STORAGECARD%BallyTempExtract\" />
+    <!--OSOrContent == old packages 
+    (Reason:It is NOT possible to find out the package type of old packages from package header encapsulated in .pkg)
+    old packages are identified as "OSOrContent" type by package service component-->
+    <Property Name="SupportedPackageTypes" Value="OSOrContent,iViewOS,iViewContent,Peripheral" />
+    <Property Name="IgnoreCertificateErrors" Value="true" />
+    <Property Name="DoCleanStartOnOSInstallation" Value="true" />
+  </Object>
+
+<Object Condition="$CardReader == 'Pcsc' and $PlayerType == 'SmartCashless' and $EgmProtocol != 'Cdk'" Name="PhysicalIdReader" Type="BallyTech.SmartCard.Model.SmartCardModel, BallyTech.SmartCard" >
+    <Property Name="SmartCardInfo">
+      <Object Name="CardStatus" Type="BallyTech.SmartCard.Model.SmartCardInfo,BallyTech.SmartCard">
+        <Property Name="Model" Ref="PhysicalIdReader"/>
+      </Object>
+    </Property>
+    <Property Name="FundTransferDevice">
+      <Object Name="SmartCardAccountAcessProvider" Type="BallyTech.SmartCard.Model.FundTransferDevice,BallyTech.SmartCard">
+        <Property Name="Model" Ref="PhysicalIdReader"/>
+        <Property Name="FundTransferRetryLimit" Value="3"/>
+      </Object>
+    </Property>
+    <Property Name="SmartCardUpdateRetryIntervel" Value="00:07:00" />
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+	<Property Name ="IsSamAvailableCheck" Value="false"/>
+	<Property Name ="SmartCardTransaction">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="SmartCardTransactionFailure"/>
+      </Object>
+    </Property>
+  </Object>
+  <Object Name="PlatformInfoModel" Type="BallyTech.PlatformInformation.PlatformInfoModel,BallyTech.PlatformInformation">
+    <Property Name="Mode" Value="Development" />
+    <Property Name="PackageService" Ref="PackageServiceModel"/>
+    <Property Condition="$CardReader == 'SmartCard' or $PlayerType == 'SmartCashless' or $PlayerType == 'Cashless'" Name ="CurrentCulture" Value ="en-za" />	    
+	<Property Condition="$PlayerType == 'SmartCashless' or $PlayerType == 'Cashless'" Name ="CurrencyId" Value ="ZAR" />
+    <Property Name="DefaultVolumeLevel" Value="50"/>
+    <Property Name="HardWarePlatform" Value="{$HardwarePlatform}"/> 
+	<Property Name="WebRequestScheduler">
+		<Object Name="WebRequestScheduler" Type="BallyTech.PlatformInformation.WebRequestScheduler, BallyTech.PlatformInformation">
+			<Property Name="WebRequestInterval" Value="00:00:10"/>
+			<Property Name="Schedule" Ref="Schedule"/>	
+		</Object>
+   </Property>
+    <Property Name="ContentServerLocation" Value="http://ballyweb.bally.systems/WCMWebContentStore/clientlayout.html"/>  
+	<Property Name="ContentServerVendorSpecificString" Value="WCM"/>  
+	<Property Name="UseVendorSpecificOption" Value="false"/>    	
+  </Object>
+
+  <Object Name="DmModel" Type="BallyTech.DM.Model.DMModel, BallyTech.DM">
+  </Object>
+  
+  <Object Condition="$PlayerType == 'SmartCashless'" Name ="IdReader" Type ="BallyTech.Sds.Model.SmartCardIdReader,BallyTech.Sds">
+    <Property Name ="PhysicalIdReader" Ref ="PhysicalIdReader"/>
+    <Property Name="PatternMatcher" Ref="PatternMatcher" />
+    <Property Name="Model" Ref="SdsModel"/>
+    <Property Name="PinRetryCount" Value="5"/>
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="BonusingSession" Ref="EliteBonusingClientModel"/>
+    <Property Name ="MinSamAmount" Value = "10000"/>
+    <Property Name ="MaxSamAmount" Value = "25000000"/>
+  </Object >
+   <Object Condition="$PlayerType == 'Cashless'" Name ="IdReader" Type ="BallyTech.Sds.Model.LatchingMagCardIdReader,BallyTech.Sds">
+    <Property Name ="PhysicalIdReader" Ref ="PhysicalIdReader"/>
+    <Property Name="PatternMatcher" Ref="PatternMatcher" />
+    <Property Name="Model" Ref="SdsModel"/>
+    <!--<Property Name="PinRetryCount" Value="5"/>-->
+    <Property Name="BonusingSession" Ref="EliteBonusingClientModel"/>
+  </Object >
+  <Object Condition="$Server == 'Sds'" Name="PlayerSessionController" Type="BallyTech.Sds.Model.SdsPlayerSessionController, BallyTech.Sds">
+    <Property Name="Egm" Ref="EgmModel" />
+    <Property Name="IdReader" Ref="IdReader" />
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="MaximumOfflineSessionsAllowed" Value="8" />
+	<Property Name ="AbandonCardSpecification">
+      <Object Type ="BallyTech.Sds.Model.Targets.AbandonCardSpecification, BallyTech.Sds">
+      </Object>
+    </Property>
+    <!-- 0: No limit for offline sessions being created -->
+    <Property Name="SessionIdleTimeout" Value="00:10:00" />
+    <Property Name="AnonymousSessionTimeout" Value="0:02:00" />
+    <Property Name="InactiveSessionEnd" Value="true" />
+    <Property Name="AccountAccessProvider" Ref="AccountAccessProvider"/>
+	<Property Condition="$CardReader == 'Pcsc'" Name="ContinueSessionOnCreditsLeftInEgm" Value="true" />
+    <Property Condition="$CardReader == 'SmartCard'" Name="EndSessionOnGameDisconnected" Value="true" />
+    <Property Name="DRCenable" Value="false"/>
+  </Object>
+
+   <Object Condition="$DefaultVolumeRequired == 'true'" Name="VolumeController" Type="BallyTech.Gtm.Core.VolumeController,BallyTech.Gtm.Core">
+	 <Property Name="ConfigureVolume" Value="{$SetDefaultVolume}"/>
+  </Object> 
+  
+  <!--The entry below needs to be removed (or commented) for normal access and it needs to be present (or uncommented) for enabling employee access feature-->
+  <Object Condition="$Server == 'Sds'" Name="EmployeeSessionController" Type="BallyTech.Sds.Model.SdsEmployeeSessionController, BallyTech.Sds">
+    <Property Name="EmployeeSessionIdleTimeOut" Value="0:15:00" />
+    <!--<Property Name="Egm" Ref="EgmModel" />-->
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="IdReader" Ref="IdReader" />
+  </Object>
+  
+ <Object Name="EnhancedDownloadModel" Type="BallyTech.EnhancedDownload.Model.EnhancedDownloadModel, BallyTech.EnhancedDownload">
+    <Property Name="Egm" Ref="EgmModel"/>
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel"/>
+    <Property Name="FloorService" Ref ="FloorServiceModel"/>   
+    <Property Name="IdReader" Ref="IdReader"/>
+    <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+    <Property Name="UseMacAddressInEgmId" Value="true"/>
+    <Property Name="IsEnhancedDownloadProgressVisible" Value="true" /> 
+    <Property Name="DMModel" Ref="DmModel" />
+    <Property Name="EgmIdSuffix" Value="DM"/>
+    <Property Condition="$Server == 'Sds' or $Server == 'Acsc-GNS'" Name="PlayerSessionController" Ref="PlayerSessionController"/>
+   <Property Name="Schedule" Ref="Schedule" />
+   <Property Name="MaxWaitTimeToInstall" Value="23:59:59"/>
+ </Object>
+<Object Condition="$Server == 'Sds'" Name="EgmLevelWin" Type="BallyTech.Sds.Model.EgmLevelWinCelebrationhandler,BallyTech.Sds">
+	  <Property Name="Model" Ref="SdsModel"/>
+	  <Property Name ="UseConfigurationfromServer" Value ="true"/>
+	  <Property Name ="GameWinThresholdAmount" Value ="1000000"/> 
+	  <Property Name="GameWinConfigurations">
+		<List ItemType="BallyTech.Sds.Model.GameWin, BallyTech.Sds">
+		  <Object>
+			<Property Name="Denomination" Value=".01"/>
+			<Property Name="LevelDetails">
+			  <Dictionary>
+				<Entry Name="1" Value =".50"/>
+				<Entry Name="2" Value ="5"/>
+				<!--<Entry Name="3" Value ="10"/>-->
+			  </Dictionary>
+			</Property>
+		  </Object>
+		  <Object>
+			<Property Name="Denomination" Value=".02"/>
+			<Property Name="LevelDetails">
+			  <Dictionary>
+				<Entry Name="1" Value ="1"/>
+				<Entry Name="2" Value ="10"/>
+				<Entry Name="3" Value ="20"/>
+			  </Dictionary>
+			</Property>
+		  </Object>
+		  <Object>
+			<Property Name="Denomination" Value=".05"/>
+			<Property Name="LevelDetails">
+			  <Dictionary>
+				<Entry Name="1" Value ="2"/>
+				<Entry Name="2" Value ="10"/>
+				<Entry Name="3" Value ="20"/>
+			  </Dictionary>
+			</Property>
+		  </Object>
+		  <Object>
+			<Property Name="Denomination" Value="1"/>
+			<Property Name="LevelDetails">
+			  <Dictionary>
+				<Entry Name="1" Value ="2"/>
+				<Entry Name="2" Value ="10"/>
+				<Entry Name="3" Value ="20"/>
+				<Entry Name="4" Value ="25"/>
+			  </Dictionary>
+			</Property>
+		  </Object>
+		  <Object>
+			<Property Name="Denomination" Value="2"/>
+			<Property Name="LevelDetails">
+			  <Dictionary>
+				<Entry Name="1" Value ="2"/>
+				<Entry Name="2" Value ="10"/>
+				<Entry Name="3" Value ="15"/>
+				<Entry Name="4" Value ="20"/>
+			  </Dictionary>
+			</Property>
+		  </Object>
+		  <Object>
+			<Property Name="Denomination" Value="5"/>
+			<Property Name="LevelDetails">
+			  <Dictionary>
+				<Entry Name="1" Value ="5"/>
+				<Entry Name="2" Value ="10"/>
+				<Entry Name="3" Value ="25"/>
+				<Entry Name="4" Value ="50"/>
+			  </Dictionary>
+			</Property>
+		  </Object>
+		</List>
+	</Property>
+	</Object >
+  <Object Condition="$EbsEnabledatSite == 'true'" Name="I2STransportModel" Type="BallyTech.EliteBonusing.v13.Common.I2STransportModel, BallyTech.EliteBonusing.v13.Common">
+    <Property Name="Endpoints">
+      <List>
+        <Object Type="BallyTech.EliteBonusing.v13.Common.TransportEndpointMapping, BallyTech.EliteBonusing.v13.Common">
+          <Property Name="Id" Value="up" />
+          <Property Name="Endpoint" Ref="EliteBonusingClientModel" />
+        </Object>
+      </List>
+    </Property>
+  </Object>
+
+  <Object Condition="$EbsEnabledatSite == 'true'" Name="EliteBonusingClientModel" Type="BallyTech.EliteBonusing.v13.Client.EliteBonusingClientModel, BallyTech.EliteBonusing.v13.Client">
+    <Property Name="Egm" Ref="EgmModel" />
+	<Property Name ="GameLink" Ref ="EgmModel"/>
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+    <Property Name="FloorService" Ref ="FloorServiceModel"/>
+    <Property Name="AccrueCashableCreditsOnly" Value="false"/>
+	<Property Name="IncrementProgressivesForCashableWagersOnly" Value="false"/>
+	<Property Name="IsWalletEnabledinEBS" Value="false"/>
+    <Property Condition="$Server == 'Sds' and $ProgressiveEnabled == 'Yes'" Name="IsEgmStateControlledByHost" Value="true"/>
+	<Property Name="BonusTransferStrategies">
+            <List>
+              <Object Condition="$Server == 'Sds' and ($PlayerType == 'LegacyECash' or $PlayerType == 'Cashless')" Name ="MagneticCardBonusTransferStrategy" 
+			  Type ="BallyTech.EliteBonusing.v13.Client.BonusAwardStrategy.MagneticCardBonusTransferStrategy,BallyTech.EliteBonusing.v13.Client">
+                <Property Name="Model" Ref="EliteBonusingClientModel" />
+                <Property Name="Egm" Ref="EgmModel" />
+                <Property Name="BonusAwardTransfer" Ref="SdsModel" />
+                <Property Name="ErrorText" Value="Error transferring Money to Magnetic Card"/>
+              </Object>
+              <Object Condition="$Server == 'Sds' and $PlayerType == 'SmartCashless'" Name ="SmartcardBonusTransferStrategy" 
+			  Type ="BallyTech.EliteBonusing.v13.Client.BonusAwardStrategy.SmartcardBonusTransferStrategy,BallyTech.EliteBonusing.v13.Client">
+                <Property Name="Model" Ref="EliteBonusingClientModel" />
+                <Property Name="Egm" Ref="EgmModel" />
+                <Property Name="BonusAwardTransfer" Ref="SdsModel" />
+                <Property Name="AccountAccessProvider" Ref="SmartCardAccountAcessProvider" />
+                <Property Name="ErrorText" Value="Error transferring Money to Smart Card"/>
+              </Object>
+            </List>
+    </Property>
+    <Property Name ="GameLockedByEbsModule">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="EbsModule"/>
+      </Object>
+    </Property>
+    <Property Name ="GameLockedByPTP">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="PTPModule"/>
+		<Property Name ="Priority" Value="1"/>
+      </Object>
+    </Property>
+    <Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+	  <Property Name="IsOfflineGamePlayAccrued" Value="true"/>
+    <Property Name="IsPartialTransferForBonusSupported" Value="false"/>
+    <Property Name="IsPinValidationRequired" Value="true"/>
+	<Property Condition="$PlayerType == 'SmartCashless' or $PlayerType == 'Cashless'" Name="CurrentCultureOnHost" Value="en-ZA"/>
+	<Property Name="BackwardCompatibilityMode" Value="1610"/>
+	<Property Condition="$CardReader == 'Pcsc'" Name="ShouldSendGamePlayForCardlessPlayer" Value="false"/>
+	<Property Name="PlayerCardMaskFormatter" Ref="CardMaskFormatter"/>
+	<!-- <Property Condition="$CardReader == 'SmartCard'" Name="PossibleEbsCardMaskFormat"> -->
+		<!-- <Dictionary> -->
+		  <!-- <Entry Name="9" Value="111111111"/> -->
+		  <!-- <Entry Name="12" Value="000111111111" /> -->
+		  <!-- <Entry Name="13" Value="0000111111111" /> -->
+		<!-- </Dictionary> -->
+    <!-- </Property> -->
+    <!-- <Property Condition="$CardReader == 'Kcsm'" Name="PossibleEbsCardMaskFormat"> -->
+		<!-- <Dictionary> -->
+		  <!-- <Entry Name="9" Value="111111111"/> -->
+		  <!-- <Entry Name="10" Value="0111111111"/> -->
+		  <!-- <Entry Name="12" Value="000111111111" /> -->
+		  <!-- <Entry Name="13" Value="0000111111111" /> -->
+		  <!-- <Entry Name="14" Value="00001111111111" /> -->
+		<!-- </Dictionary> -->
+    <!-- </Property> -->
+    <Property Name="Hosts">
+      <List>
+        <Object Condition="$EbsEnabledatSite == 'true'" Name="EbsHost" Type="BallyTech.EliteBonusing.v13.Client.HostConnection.Host, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="HostId" Value="1"/>
+		  <Property Name="PeerSiteID" Value="1"/>
+          <Property Name="PeerLocation" Value="{$I2STransportScheme}://{$I2SDefaultServer}/PlatformService/PlatformService.svc"/>
+          <Property Name="UseVendorSpecificOption" Value="true"/>
+          <Property Name="EbsVendorSpecificString" Value="EBS"/>
+          <Property Condition="$HttpsRequired=='true'" Name="EgmLocation" Value="{$I2STransportScheme}://{{0}}:8002/EBS/up"/>
+		  <Property Condition="$HttpsRequired=='false'" Name="EgmLocation" Value="{$I2STransportScheme}://{{0}}:8001/EBS/up"/>
+        </Object>
+      </List>
+    </Property>
+    <Property Name="StandaloneTournamentSessionManager">
+      <Object Name="StandaloneTournamentSessionManager" Type="BallyTech.EliteBonusing.v13.Client.PlayerSession.StandaloneTournamentSessionManager, BallyTech.EliteBonusing.v13.Client">
+        <Property Name="EliteBonusingIdReader">
+          <Object Name="EliteBonusingIdReader" Type="BallyTech.EliteBonusing.v13.Client.PlayerSession.EliteBonusingIdReader, BallyTech.EliteBonusing.v13.Client" />
+        </Property>
+        <Property Name="EliteBonusingPlayerSessionController">
+          <Object Name="EliteBonusingPlayerSessionController" Type="BallyTech.EliteBonusing.v13.Client.PlayerSession.EliteBonusingPlayerSessionController, BallyTech.EliteBonusing.v13.Client">
+            <Property Name="IdReader" Ref="EliteBonusingIdReader" />
+          </Object>
+        </Property>
+        <Property Name="EliteBonusingPlayerTrackingSystem" >
+          <Object Name="EliteBonusingPlayerTrackingSystem" Type="BallyTech.EliteBonusing.v13.Client.PlayerSession.EliteBonusingPlayerTrackingSystem, BallyTech.EliteBonusing.v13.Client">
+            <Property Name="PlayerSessionController" Ref="EliteBonusingPlayerSessionController" />
+          </Object>
+        </Property>
+      </Object>
+    </Property>
+    <Property Name="DeviceMessageParsers">
+      <List>
+        <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageParser, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="DeviceClass" Value="luckyMatch"/>
+          <Property Name="MessageMatchers">
+            <List>
+
+              <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageMatcher, BallyTech.EliteBonusing.v13.Client">
+                <Property Name="Pattern" Value="Winning Birthday (is|was) ([a-zA-Z]+)-(\d+)-(\d+)" />
+                <Property Name="DeviceMessageVariables">
+                  <List>
+                    <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageRegexVariable, BallyTech.EliteBonusing.v13.Client">
+                      <Property Name="VariableName" Value="WinMonth" />
+                      <Property Name="GroupIndex" Value="2" />
+                    </Object>
+                    <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageRegexVariable, BallyTech.EliteBonusing.v13.Client">
+                      <Property Name="VariableName" Value="WinDay" />
+                      <Property Name="GroupIndex" Value="3" />
+                    </Object>
+                    <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageRegexVariable, BallyTech.EliteBonusing.v13.Client">
+                      <Property Name="VariableName" Value="WinYear" />
+                      <Property Name="GroupIndex" Value="4" />
+                    </Object>
+                  </List>
+                </Property>
+              </Object>
+
+              <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageMatcher, BallyTech.EliteBonusing.v13.Client">
+                <Property Name="Pattern" Value="\s*(Birthday Match has started[^\.]+.)([^\.]+)[\.]([^\d]*)(\$\s*[\d,\.]+|R [\d,\s \.]+|[\d, \.]* Pts)" />
+                <Property Name="DeviceMessageVariables">
+                  <List>
+                    <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageRegexVariable, BallyTech.EliteBonusing.v13.Client">
+                      <Property Name="VariableName" Value="PossibleWinAmount" />
+                      <Property Name="GroupIndex" Value="4" />
+                    </Object>
+                  </List>
+                </Property>
+              </Object>
+            </List>
+          </Property>
+        </Object>
+
+        <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageParser, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="DeviceClass" Value="flexRewards"/>
+          <Property Name="MessageMatchers">
+           <List>
+              <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageMatcher, BallyTech.EliteBonusing.v13.Client">
+                    <Property Name="Pattern" Value="^FR:YOU" />
+                    <Property Name="AdditionalVariables">
+                        <Dictionary>
+                          <Entry Name="ThemeName" Value="PlainText" />
+                        </Dictionary>
+                    </Property>
+                </Object>
+                
+                <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageMatcher, BallyTech.EliteBonusing.v13.Client">
+                    <Property Name="Pattern" Value="^FR:PIR" />                
+                    <Property Name="AdditionalVariables">
+                      <Dictionary>
+                        <Entry Name="ThemeName" Value="PiratesGold" />
+                      </Dictionary>
+                    </Property>
+                </Object>
+
+                <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageMatcher, BallyTech.EliteBonusing.v13.Client">
+                    <Property Name="Pattern" Value="^FR:LAT" />
+                    <Property Name="AdditionalVariables">
+                        <Dictionary>
+                            <Entry Name="ThemeName" Value="LanternsOfFortune" />
+                        </Dictionary>
+                    </Property>
+                </Object>
+
+                <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageMatcher, BallyTech.EliteBonusing.v13.Client">
+                    <Property Name="Pattern" Value="^FR:LOT" />
+                    <Property Name="AdditionalVariables">
+                        <Dictionary>
+                            <Entry Name="ThemeName" Value="LoteriaFortuneOfTheSun" />
+                        </Dictionary>
+                    </Property>
+                </Object>
+            </List>
+          </Property>
+        </Object>
+
+        <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageParser, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="DeviceClass" Value="powerWinners"/>
+          <Property Name="MessageMatchers">
+            <List>
+              <!-- HiLo Win -->
+              <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageMatcher, BallyTech.EliteBonusing.v13.Client">
+                <Property Name="Pattern" Value="\s*HL:\s*Wins:(.*)" />
+                <Property Name="DeviceMessageVariables">
+                  <List>
+                    <Object Type="BallyTech.EliteBonusing.v13.Client.DeviceMessageRegexVariable, BallyTech.EliteBonusing.v13.Client">
+                      <Property Name="VariableName" Value="WinAmts" />
+                      <Property Name="GroupIndex" Value="1" />
+                    </Object>
+                  </List>
+                </Property>
+                <Property Name="AdditionalVariables">
+                  <Dictionary>
+                    <Entry Name="HiLoWin" Value="true" />
+                  </Dictionary>
+                </Property>
+              </Object>
+            </List>
+          </Property>
+        </Object>
+      </List>
+
+    </Property>
+    <Property Name="WagerActionProvider">
+      <Object Name="WagerActionProvider" Type="BallyTech.EliteBonusing.v13.Client.WagerActionProvider, BallyTech.EliteBonusing.v13.Client">
+        <Property Name="Model" Ref ="EliteBonusingClientModel"/>              
+      </Object>
+    </Property>
+  </Object>
+        
+  <Object Name="G2SModel" Type="BallyTech.G2S.Model.G2SModel, BallyTech.G2S">
+    <Property Name="Egm" Ref="EgmModel" />
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+    <Property Name="FloorService" Ref ="FloorServiceModel"/>
+    <Property Name="EgmIdSuffix" Value="DM"/>
+    <Property Name="Devices">
+      <!-- Dynamically loaded devices and classes -->
+      <!-- download device and class node -->
+      <List>
+        <Object Name="G2SDownload" Type="BallyTech.G2S.Model.G2SDownload,BallyTech.G2S">
+          <Property Name="PackageServiceModel" Ref="PackageServiceModel" />
+          <Property Name="IdleTimePeriod" Value="0:00:04"></Property>
+          <Property Name="IdReader" Ref="IdReader"></Property>
+          <Property Name="MaxWaitTimeToInstall" Value="23:59:59"></Property>
+          <!-- Egm Idle Time period to figure out whether is Egm is actually idle.-->
+          <Property Name="dmModel" Ref="DmModel" />
+        </Object>
+        <Object Type="BallyTech.G2S.Model.SingleDeviceClass`2[[BallyTech.G2S.Message.download, BallyTech.G2S],[BallyTech.G2S.Message.downloadStatus, BallyTech.G2S]], BallyTech.G2S"/>
+      </List>
+    </Property>
+    <Property Name="Hosts">
+      <List>
+      </List>
+    </Property>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'" Name="SessionCounter" Type="BallyTech.Sds.Model.SessionCounter, BallyTech.Sds">
+    <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+  </Object>
+  
+  <Object Condition="$Server == 'Sds'" Name="AlternateAccountLookup" Type="BallyTech.Sds.Model.AlternateAccountLookup,BallyTech.Sds">
+    <Property Name="EmployeeSessionController" Ref="EmployeeSessionController" />	
+    <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+	<Property Name="AccountLookup" Ref="AccountLookupCoordinatorModel"/>
+    <Property Name="Egm" Ref ="EgmModel"/>
+    <Property Name="Schedule" Ref="Schedule" />
+	<Property Name="NoFundTimeout" Value="00:01:00"/>
+    <Property Name="AlternateAccountLookUpErrorCode">
+      <Dictionary>
+        <Entry Name="4" Value="No matching account found in SDS" />
+      </Dictionary>
+    </Property>
+  </Object>
+  
+  <Object Condition="$Server == 'Sds'" Name="SessionMeters" Type="BallyTech.Sds.Model.PlayerSessionMeters,BallyTech.Sds"/>
+  
+  <Object Condition="$Server == 'Sds'" Name ="PlayerServiceHandler" Type="BallyTech.Sds.Model.PlayerServiceRequestHandler, BallyTech.Sds">
+    <Property Name="Model" Ref="SdsModel"/>
+    <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+  </Object>
+  
+  <Object Name="LatchingCardHandler" Condition="$CardReader == 'Pcsc'"  Type="BallyTech.Sds.Model.LatchingCardHandler,BallyTech.Sds">
+	  <Property Name ="IdReader" Ref ="IdReader"/>
+	  <Property Name="Model" Ref="SdsModel"/>
+	  <Property Name="LatchingIdReader" Ref="CardStatus"/>
+  </Object>
+   <Object Name="LatchingIdReaderActionHandler" Condition="$CardReader == 'Pcsc'"  Type="BallyTech.Sds.Interaction.LatchingIdReaderActionHandler,BallyTech.Sds">
+   	<Property Name="ECash" Ref="AccountAccessProvider"/>
+	<Property Name="IdReader" Ref="IdReader"/>
+  </Object>  
+  
+  <Object Condition="$PlayerType == 'SmartCashless' or $PlayerType == 'Cashless'" Name="DisableBillValidator" Type="BallyTech.Sds.Model.Targets.DisableBillValidator,BallyTech.Sds">
+    <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+	 <Property Condition="$EbsEnabledatSite == 'true'" Name="BonusingSession" Ref="EliteBonusingClientModel"/> 
+    <Property Name="Egm" Ref="EgmModel"/>	
+  </Object>
+  
+  <Object Name="AccountLookupCoordinatorModel" Type="BallyTech.AccountLookupCoordinator.AccountLookupCoordinatorModel,BallyTech.AccountLookupCoordinator">
+	<Property Name="CoordinatorRequiresPin" Value="true" />
+	<Property Name="Egm" Ref="EgmModel" />
+	<Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+	<Property Name="QRCodeGenerationEnabled" Value="true" />
+	<Property Name="QRCodePath" Value="D:\Logs\QRCode.png" />
+  </Object>
+
+  <Object Condition="$Server == 'Sds' and $ScepEnroll == 'true'" Name="BannedPlayerEgmLockHandler" Type="BallyTech.Sds.Model.BannedPlayerEgmLockHandler,BallyTech.Sds">
+	<Property Name ="IdReader" Ref ="IdReader"/>
+	<Property Name="Player" Ref="PlayerTrackingSystem" />
+	<Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+	<Property Name ="GameLockedByLockControllerOnBannedPlayer">
+	  <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+		<Property Name ="Name" Value="BannedPlayer"/>
+	  </Object>
+	</Property>
+  </Object>
+  <Object Condition="$Server == 'Sds' and $ScepEnroll == 'true'" Name="PrecommitmentCardInEgmLockHandler" Type="BallyTech.Sds.Model.PrecommitmentCardInEgmLockHandler,BallyTech.Sds">
+	<Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>		
+	<Property Name ="SdsPreCommitment" Ref="SdsPreCommitment"/>
+	<Property Name ="PrecommitmentDisconnectHandler" Ref="PrecommitmentDisconnectHandler"/>
+	<Property Name="Model" Ref="SdsModel"/>
+	<Property Name="Player" Ref="PlayerTrackingSystem" />
+	<Property Name ="IdReader" Ref ="IdReader"/>		
+	<Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+	<Property Name ="GameLockedByLockControllerOnCardIn">
+	  <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+		<Property Name ="Name" Value="CardIn"/>
+	  </Object>
+	</Property>
+	</Object>
+	<Object Condition="$Server == 'Sds'" Name ="TaxFormHandler" Type ="BallyTech.Sds.Model.Targets.TaxFormHandler,BallyTech.Sds">
+		<Property Name="Model" Ref="SdsModel"/>
+	 </Object>
+  <Object Condition="$EgmProtocol == 'Sas' and $Server == 'Sds'" Name="EgmErrorHandler" Type="BallyTech.Sds.Model.EgmErrorHandler,BallyTech.Sds">
+	<Property Name="EgmError" Ref="EgmErrorNotifier"/>
+  </Object>
+  <Object Condition="$Server == 'Sds'" Name ="SdsModel" Type ="BallyTech.Sds.Model.SdsModel,BallyTech.Sds">
+    <Property Condition="$BigECountDownSupport == 'true'" Name="ShouldCheckForBigECountDownSupport" Value="true"/>
+    <Property Name ="Egm" Ref ="EgmModel"/>
+    <Property Name ="FloorService" Ref ="FloorServiceModel"/>
+    <Property Name ="GameLink" Ref ="EgmModel"/>
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+    <Property Name="AssetNumberMaxValue" Value="999999"/>
+	<Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+    <!-- Set MaxAutoTransferRetry to a positive value greater than 1 (retry count) to enable this feature -->
+    <Property Name="MaxAutoTransferRetry" Value ="5"/>
+	<!-- This property is for NJ if it is set to true,iView asks SDS whether to perform KeyToCredit or not -->
+	<!--<Property Name="AuthorizationForKeyToCreditRequired" Value="false"/> -->
+	<Property Name="AllowOfflinePlayerTracking" Value="true"/>
+	<Property Name="DocumentIdBuilder">
+      <Object Name="DocumentIdBuilder" Type="BallyTech.Sds.Model.GmuDocumentIdBuilder, BallyTech.Sds"/>
+    </Property>
+    <Property Condition="$ScepEnroll == 'true'" Name="IsFullEncryptionEnabled" Value="true"/>
+	<Property Name="ShouldCheckForFF3Support" Value="true"/>
+	<Property Condition="$PlayerType == 'Cashless'" Name="TransferCreditsToPlayerAccount" Value="true"/>
+	<Property Name="volumeController" Ref="VolumeController"/>
+	<Property Condition="$CardReader == 'Pcsc'" Name ="ShouldProcessJackpotOnNACK" Value="false"/>
+    <Property Name="FundTransferStatusHandler">
+      <Object Name="PlayerFundTransferStatusHandler" Type="BallyTech.Sds.Model.PlayerFundTransferStatusHandler, BallyTech.Sds">
+        <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+      </Object>
+    </Property>
+	<Property Condition="$PlayerType == 'SmartCashless'" Name ="CancelCreditAsCelebrationEventHandler">
+      <Object Name="CancelCreditCelebrationLockup" Type="BallyTech.Sds.Model.SmartCardCancelCreditAsCelebrationEventHandler,BallyTech.Sds">
+        <Property  Name="AccountAccessProvider" Ref="SmartCardAccountAcessProvider" />
+        <Property  Name="Model" Ref="SdsModel" />
+      </Object >
+    </Property>
+	<Property Name ="GameLockedOnServerOffline">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="SDSOffline"/>
+	 </Object>
+    </Property>
+	<Property Condition="$PlayerType == 'SmartCashless' or $PlayerType == 'Cashless'"  Name ="ShouldSendCurrentCreditsMeter" Value="true"/>
+    <Property Condition="$PlayerType == 'SmartCashless' or $PlayerType == 'Cashless'"  Name="IsCelebrationLockupEnabled" Value="true"/>
+    <Property Name="AlternateAccountLookup" Ref="AlternateAccountLookup"/>
+	  <Property Name="TicketLocationLine" Value="L1"/>
+    <Property Name="MessageFloodCount" Value="10000"/>
+    <Property Name ="GmuNumber" Value ="05"/>
+    <Property Name ="IsPidEnabled" Value ="true"/>
+    <Property Name ="ShouldSendCurrentCreditsMeter" Value="true"/>
+	<Property Name ="ShouldSendSlotDoorOpenMeter" Value="false"/>
+<Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+    <Property Name ="GameLockedByEmployee">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="CanOverride" Value="true"/>
+        <Property Name ="Name" Value="EmployeeModule"/>
+      </Object>
+    </Property>
+	 <Property Name ="GameLockedOnServerOffline">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="SDSOffline"/>
+      </Object>
+    </Property>
+    <Property Name ="GameLockBySiteSchedule">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="CanOverride" Value="false"/>
+        <Property Name ="Name" Value="Site Enable/Disable"/>
+      </Object>
+    </Property>
+    <Property Name ="GameLockedByServer">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="CanOverride" Value="true"/>
+        <Property Name ="Name" Value="SDSServer"/>
+      </Object>
+    </Property>
+    <Property Name ="GameLockedByCashlessModule">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="CashlessModule"/>
+      </Object>
+    </Property>
+	<Property Name ="GameLockedForDenomMismatch">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="DenomMismatch"/>
+      </Object>
+    </Property>
+    <Property Name ="GameLockedForGameCap">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="GameCapModule"/>
+      </Object>
+    </Property>
+    <Property Name ="GameLockedForBreakNotification">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="BreakNotificationModule"/>
+      </Object>
+    </Property>
+	<Property Name ="GameLockedForJackpot">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="JackpotLockHandlerModule"/>
+      </Object>
+    </Property>
+    <Property Name ="GameLockedForPreCommitment">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="PreCommitmentModule"/>
+      </Object>
+    </Property>
+	<Property Name ="GameLockedDueToMetersUpdateFailure">
+      <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+        <Property Name ="Name" Value="ECashModule"/>
+      </Object>
+    </Property>
+    <Property Name ="SendMgMdMeters" Value="false"/>
+     <Property Name ="DoorStatusListener" Ref="DoorStatusModel"/>
+    <Property Name ="IntrepidOptions">
+      <Object Name="IntrepidOptions"  Type ="BallyTech.Sds.Model.IntrepidOptions,BallyTech.Sds">
+        <Property Name="JackpotType">
+          <Dictionary>
+            <Entry Name="UnknownHandpay" Value="01"/>
+            <Entry Name="CancelledCredits" Value="FE"/>
+            <Entry Name="SystemGameJackpot" Value="FA"/>
+            <Entry Name="UnknownProgressive" Value="96"/>
+            <Entry Name="Bonus" Value="FB"/>
+            <Entry Name="MysteryJackpot" Value="F9"/>
+            <Entry Name="CelebrationLockup" Value="FD"/>
+            <Entry Name="ProgressiveLevel1" Value="98"/>
+            <Entry Name="ProgressiveLevel2" Value="99"/>
+            <Entry Name="ProgressiveLevel3" Value="97"/>
+            <Entry Name="ProgressiveLevel4" Value="94"/>
+            <Entry Name="ProgressiveLevel5" Value="93"/>
+            <Entry Name="ProgressiveLevel6" Value="92"/>
+            <Entry Name="ProgressiveLevel7" Value="91"/>
+            <Entry Name="ProgressiveLevel8" Value="90" />
+            <Entry Name="ProgressiveLevel9" Value="9A" />
+            <Entry Name="ProgressiveLevel10" Value ="9B"/>
+            <Entry Name="ProgressiveLevel11" Value ="9C"/>
+            <Entry Name="ProgressiveLevel12" Value ="9D"/>
+            <Entry Name="ProgressiveLevel13" Value ="9E"/>
+            <Entry Name="ProgressiveLevel14" Value ="9F"/>
+            <Entry Name="ProgressiveLevel15" Value ="70"/>
+            <Entry Name="ProgressiveLevel16" Value ="71"/>
+            <Entry Name="ProgressiveLevel17" Value ="72"/>
+            <Entry Name="ProgressiveLevel18" Value ="73"/>
+            <Entry Name="ProgressiveLevel19" Value ="74"/>
+            <Entry Name="ProgressiveLevel20"  Value ="75"/>
+			<Entry Name="ProgressiveLevel21"  Value ="76"/>
+			<Entry Name="ProgressiveLevel22"  Value ="77"/>
+			<Entry Name="ProgressiveLevel23"  Value ="78"/>
+			<Entry Name="ProgressiveLevel24"  Value ="79"/>
+			<Entry Name="ProgressiveLevel25"  Value ="7A"/>
+            <!-- regular handpay-->
+            <Entry Name="LargeWin" Value="F8"/>
+            <Entry Name="NonProgressiveTopWinAmount" Value="FC"/>
+            <Entry Name="NonProgressiveWinAmount" Value="FC"/>
+          </Dictionary>
+        </Property>
+        <Property Name="NoteDenominations">
+          <List ItemType="BallyTech.Sds.Model.Targets.NoteDenomination, BallyTech.Sds">
+            <Object>
+              <Property Name="Value" Value="1" />
+              <Property Name="DenominationCode" Value="0" />
+              <Property Name="LargeBuyInThreshold" Value="0" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="2" />
+              <Property Name="DenominationCode" Value="1" />
+              <Property Name="LargeBuyInThreshold" Value="0" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="5" />
+              <Property Name="DenominationCode" Value="2" />
+              <Property Name="LargeBuyInThreshold" Value="0" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="10" />
+              <Property Name="DenominationCode" Value="3" />
+              <Property Name="LargeBuyInThreshold" Value="5" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="20" />
+              <Property Name="DenominationCode" Value="4" />
+              <Property Name="LargeBuyInThreshold" Value="4" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="25" />
+              <Property Name="DenominationCode" Value="5" />
+              <Property Name="LargeBuyInThreshold" Value="4" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="50" />
+              <Property Name="DenominationCode" Value="6" />
+              <Property Name="LargeBuyInThreshold" Value="3" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="100" />
+              <Property Name="DenominationCode" Value="7" />
+              <Property Name="LargeBuyInThreshold" Value="2" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="200" />
+              <Property Name="DenominationCode" Value="8" />
+              <Property Name="LargeBuyInThreshold" Value="2" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="250" />
+              <Property Name="DenominationCode" Value="9" />
+              <Property Name="LargeBuyInThreshold" Value="2" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="500" />
+              <Property Name="DenominationCode" Value="10" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="1000" />
+              <Property Name="DenominationCode" Value="11" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="2000" />
+              <Property Name="DenominationCode" Value="12" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="2500" />
+              <Property Name="DenominationCode" Value="13" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="5000" />
+              <Property Name="DenominationCode" Value="14" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="10000" />
+              <Property Name="DenominationCode" Value="15" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="20000" />
+              <Property Name="DenominationCode" Value="16" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="25000" />
+              <Property Name="DenominationCode" Value="17" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="50000" />
+              <Property Name="DenominationCode" Value="18" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="100000" />
+              <Property Name="DenominationCode" Value="19" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="200000" />
+              <Property Name="DenominationCode" Value="20" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="250000" />
+              <Property Name="DenominationCode" Value="21" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="500000" />
+              <Property Name="DenominationCode" Value="22" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+            <Object>
+              <Property Name="Value" Value="1000000" />
+              <Property Name="DenominationCode" Value="23" />
+              <Property Name="LargeBuyInThreshold" Value="1" />
+            </Object>
+          </List>
+        </Property>
+        <Property Condition="$CardReader == 'SmartCard' or $PlayerType == 'SmartCashless' or $PlayerType == 'Cashless'" Name="BillDenominations">
+          <List ItemType="BallyTech.Sds.Messages.BillMetersBlock,BallyTech.Sds">
+            <Object Name ="TenDollarBills" Type ="BallyTech.Sds.Messages.TenDollarBills,BallyTech.Sds" />
+            <Object Name ="TwentyDollarBills" Type ="BallyTech.Sds.Messages.TwentyDollarBills,BallyTech.Sds" />
+            <Object Name ="FiftyDollarBills" Type ="BallyTech.Sds.Messages.FiftyDollarBills,BallyTech.Sds" />
+            <Object Name ="TwoHundredDollarBills" Type ="BallyTech.Sds.Messages.TwoHundredDollarBills,BallyTech.Sds" />
+            <Object Name ="TwoHundredAndFiftyDollarBills" Type ="BallyTech.Sds.Messages.TwoHundredAndFiftyDollarBills,BallyTech.Sds" />
+            <Object Name ="FiveHundredDollarBills" Type ="BallyTech.Sds.Messages.FiveHundredDollarBills,BallyTech.Sds" />
+          </List>
+        </Property>
+        <Property Name="OutOfServiceExceptionCodes">
+          <List ItemType="BallyTech.Sds.Messages.ExceptionCode, BallyTech.Sds">
+            <Value>SlotDoorOpened</Value>
+            <Value>SlotDoorClosed</Value>
+          </List>
+        </Property>
+        <Property Name="PeriodicMessageInterval" Value="00:15:00" />
+        <Property Name="RelativePeriodic" Value="false" />
+        <Property Name="DisableCardedPlay" Value="false" />
+        <Property Name="BillRejectLimit" Value="5" />
+        <Property Name="CardOutDelayTime" Value="00:00:00" />
+        <Property Name="MultiSiteList" Value="512,77,78,603,010,603,100-999"/>
+        <Property Name="GmuCrcFileName" Value="\Storage Card\A012345Z.bin"/>
+        <Property Name="DocumentId" Value="A012345Z.bin"/>
+        <Property Name ="IsCancelledCreditEnabled" Value ="true"/>
+      </Object>
+    </Property>
+    <Property Condition="$Server == 'Sds'and $CardReader == 'Kcsm'" Name ="Player">
+      <Object Name ="PlayerTrackingSystem" Type ="BallyTech.Sds.Model.Player,BallyTech.Sds">
+        <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+        <Property Name="IdReader" Ref="IdReader" />
+        <Property Name="HotPlayerPeriod" Value="00:01:00" />
+        <Property Name="HotPlayerThreshold" Value="5" />
+        <Property Name="AwardBonusPointsOnNonCashablePlay" Value="false" />
+        <Property Name="ShouldStopAwardRateCalculation" Value="false" />
+        <Property Name="BaseTarget" Value="100" />
+        <!--Was 100-->
+        <!--Value in dollars-->
+        <!--BaseIncrement value cannot be changed as per current design -->
+        <Property Name="BaseIncrement" Value=".01" />
+        <Property Name="BaseAward" Value="1" />
+        <!--<Property Name="ResponseValidator" >
+          <Object Type="BallyTech.Sds.Model.ValidResponseSpecification,BallyTech.Sds"/>
+        </Property>-->
+		<Property Name="SdsPlayerProfileMatchers">
+          <List>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello  U-Spin Player! You have 0 points at Qualifying Level -->
+              <Property Name="Pattern" Value="(Hello)\s+(.*)\!\s+You\s+have\s+\d+\.?\d*\s+points\s+at\s+(.*)\s+Level" />
+              <Property Name="PreferredNameGroupIndex" Value="2" />
+              <Property Name="FullNameGroupIndex" Value="2" />
+              <Property Name="ClubLevelGroupIndex" Value="3" />
+	      <Property Name="GreetingPrefixIndex" Value="1" />
+            </Object>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello U-Spin Player You have 2252 valuable Points Your club status is Qualifying -->
+              <Property Name="Pattern" Value="(Hello)\s+(.*)\s+You\s+have\s+\d+\.?\d*\s+(.*)\s+club\s+status\s+is\s+(.*)\s*" />
+              <Property Name="PreferredNameGroupIndex" Value="2" />
+              <Property Name="FullNameGroupIndex" Value="2" />
+              <Property Name="ClubLevelGroupIndex" Value="4" />
+	      <Property Name="GreetingPrefixIndex" Value="1" />
+            </Object>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello VSAGAR! You have Points:54, Promo:1245.00, ClubState:Silver -->
+              <Property Name="Pattern" Value="Hello\s+(.*)\!\s+You\s+have\s+Points:+\d+\.?\d*,\s+Promo:+\d+\.?\d*,\s+ClubState:+(.*)" />
+              <Property Name="PreferredNameGroupIndex" Value="1" />
+              <Property Name="FullNameGroupIndex" Value="1" />
+              <Property Name="ClubLevelGroupIndex" Value="2" />
+            </Object>
+          </List>
+        </Property>
+      </Object>
+    </Property>
+	<Property Condition="$PlayerType == 'SmartCashless'" Name ="Player">
+      <Object Name ="PlayerTrackingSystem" Type ="BallyTech.Sds.Model.SmartCardPlayer,BallyTech.Sds">
+        <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+        <Property Name="IdReader" Ref="IdReader" />
+		<Property Name="HotPlayerPeriod" Value="00:01:00" />
+        <Property Name="HotPlayerThreshold" Value="5" />
+        <Property Name="AwardBonusPointsOnNonCashablePlay" Value="false" />
+        <Property Name="BaseTarget" Value="100" />
+        <!--BaseIncrement value cannot be changed as per current design -->
+        <Property Name="BaseIncrement" Value=".01" />
+        <Property Name="BaseAward" Value="1" />
+        <Property Name="LatchingCardHandler" Ref="LatchingCardHandler"/>
+        <Property Name="NameFieldDelimiter" Value=";"/>
+        <Property Name="ClubStatePatMatcher">
+          <Object Type="BallyTech.Sds.Model.ClubStateMatcher, BallyTech.Sds">
+            <!-- Parse message in following format to get the Club State:
+               "Hello Technologies you have Points : 1013, Comp : 3.92, Stub : 0, Promo : 1000.72, Point Val : 101.30, Club State: Gold, Promo2" **-->
+            <Property Name="Pattern" Value="Club\s+State\s*[:]\s*[^,]*" />
+            <Property Name="ClubLevelSeparator" Value=":" />
+          </Object>
+        </Property>
+
+        <Property Name="SdsPlayerProfileMatchers">
+          <List>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello  U-Spin Player! You have 0 points at Qualifying Level -->
+              <Property Name="Pattern" Value="Hello\s+(.*)\!\s+You\s+have\s+\d+\.?\d*\s+points\s+at\s+(.*)\s+Level" />
+              <Property Name="PreferredNameGroupIndex" Value="1" />
+              <Property Name="FullNameGroupIndex" Value="1" />
+              <Property Name="ClubLevelGroupIndex" Value="2" />
+            </Object>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello U-Spin Player You have 2252 valuable Points Your club status is Qualifying -->
+              <Property Name="Pattern" Value="Hello\s+(.*)\s+You\s+have\s+\d+\.?\d*\s+(.*)\s+club\s+status\s+is\s+(.*)\s*" />
+              <Property Name="PreferredNameGroupIndex" Value="1" />
+              <Property Name="FullNameGroupIndex" Value="1" />
+              <Property Name="ClubLevelGroupIndex" Value="3" />
+            </Object>
+          </List>
+        </Property>
+		<Property Name="SessionMeters" Ref="SessionMeters"/>
+      </Object>
+    </Property>
+    <Property Condition="$Server == 'Sds' and $CardReader == 'SmartCard'" Name ="Player">
+      <Object Name ="PlayerTrackingSystem" Type ="BallyTech.Sds.Model.SmartCardPlayer,BallyTech.Sds">
+        <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+        <Property Name="IdReader" Ref="IdReader" />
+        <Property Name="HotPlayerPeriod" Value="00:01:00" />
+        <Property Name="HotPlayerThreshold" Value="5" />
+        <Property Name="AwardBonusPointsOnNonCashablePlay" Value="false" />
+        <Property Name="BaseTarget" Value="100" />
+        <!--BaseIncrement value cannot be changed as per current design -->
+        <Property Name="BaseIncrement" Value="1" />
+        <Property Name="BaseAward" Value="1" />        
+        <Property Name="SmartCardStatus" Ref="CardStatus"/>
+        <Property Name="NameFieldDelimiter" Value=";"/>
+		
+        <Property Name="SdsPlayerProfileMatchers">
+          <List>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello  U-Spin Player! You have 0 points at Qualifying Level -->
+              <Property Name="Pattern" Value="Hello\s+(.*)\!\s+You\s+have\s+\d+\.?\d*\s+points\s+at\s+(.*)\s+Level" />
+              <Property Name="PreferredNameGroupIndex" Value="1" />
+              <Property Name="FullNameGroupIndex" Value="1" />
+              <Property Name="ClubLevelGroupIndex" Value="2" />
+            </Object>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello U-Spin Player You have 2252 valuable Points Your club status is Qualifying -->
+              <Property Name="Pattern" Value="Hello\s+(.*)\s+You\s+have\s+\d+\.?\d*\s+(.*)\s+club\s+status\s+is\s+(.*)\s*" />
+              <Property Name="PreferredNameGroupIndex" Value="1" />
+              <Property Name="FullNameGroupIndex" Value="1" />
+              <Property Name="ClubLevelGroupIndex" Value="3" />
+            </Object>
+			<Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello Technologies you have Points : 1013, Comp : 3.92, Stub : 0, Promo : 1000.72, Point Val : 101.30, Club State: Gold, Promo2 -->
+              <Property Name="Pattern" Value="Hello\s+(.*)\s+you(.*)\s+Club\s+State\s*[:]\s*([^,]*)" />
+              <Property Name="PreferredNameGroupIndex" Value="1" />
+              <Property Name="FullNameGroupIndex" Value="1" />
+              <Property Name="ClubLevelGroupIndex" Value="3" />
+            </Object>
+          </List>
+        </Property>
+      </Object>
+    </Property>
+	 <Property Condition="$PlayerType == 'Cashless'" Name ="Player">
+      <Object Name ="PlayerTrackingSystem" Type ="BallyTech.Sds.Model.Targets.MagneticCardPlayer,BallyTech.Sds">
+        <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+        <Property Name="IdReader" Ref="IdReader" />
+        <Property Name="HotPlayerPeriod" Value="00:01:00" />
+        <Property Name="HotPlayerThreshold" Value="5" />
+        <Property Name="AwardBonusPointsOnNonCashablePlay" Value="false" />
+        <Property Name="BaseTarget" Value="100" />
+        <!--BaseIncrement value cannot be changed as per current design -->
+        <Property Name="BaseIncrement" Value=".01" />
+        <Property Name="BaseAward" Value="1" />
+        <Property Name="LatchingCardHandler" Ref="LatchingCardHandler"/>
+        <Property Name="NameFieldDelimiter" Value=";"/>
+        <Property Name="ClubStatePatMatcher">
+          <Object Type="BallyTech.Sds.Model.ClubStateMatcher, BallyTech.Sds">
+            <!-- Parse message in following format to get the Club State:
+               "Hello Technologies you have Points : 1013, Comp : 3.92, Stub : 0, Promo : 1000.72, Point Val : 101.30, Club State: Gold, Promo2" **-->
+            <Property Name="Pattern" Value="Club\s+State\s*[:]\s*[^,]*" />
+            <Property Name="ClubLevelSeparator" Value=":" />
+          </Object>
+        </Property>
+
+        <Property Name="SdsPlayerProfileMatchers">
+          <List>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello  U-Spin Player! You have 0 points at Qualifying Level -->
+              <Property Name="Pattern" Value="Hello\s+(.*)\!\s+You\s+have\s+\d+\.?\d*\s+points\s+at\s+(.*)\s+Level" />
+              <Property Name="PreferredNameGroupIndex" Value="1" />
+              <Property Name="FullNameGroupIndex" Value="1" />
+              <Property Name="ClubLevelGroupIndex" Value="2" />
+            </Object>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Hello U-Spin Player You have 2252 valuable Points Your club status is Qualifying -->
+              <Property Name="Pattern" Value="Hello\s+(.*)\s+You\s+have\s+\d+\.?\d*\s+(.*)\s+club\s+status\s+is\s+(.*)\s*" />
+              <Property Name="PreferredNameGroupIndex" Value="1" />
+              <Property Name="FullNameGroupIndex" Value="1" />
+              <Property Name="ClubLevelGroupIndex" Value="3" />
+            </Object>
+            <Object Type="BallyTech.Sds.Model.SdsPlayerProfileMatcher, BallyTech.Sds">
+              <!-- Good Day! Hello  Gireesh you have Bonus Points : 8338, Promo Credits : 23953.30 -->
+              <Property Name="Pattern" Value="Good Day! Hello\s+(.*)you\s+have\s+Bonus\s+Points\s+:\s+(.*),\s+Promo\s+Credits\s+:\s+(.*)"/>
+              <Property Name="PreferredNameGroupIndex" Value="1"/>
+              <Property Name="FullNameGroupIndex" Value="1"/>
+            </Object>
+          </List>
+        </Property>
+		<Property Name="SessionMeters" Ref="SessionMeters"/>
+      </Object>
+    </Property>
+    <Property Name="AlternateAccountLookup" Ref="AlternateAccountLookup"/>
+    <Property Name="Employee">
+      <Object Name="EmployeeTrackingSystem" Type="BallyTech.Sds.Model.Employee,BallyTech.Sds">
+        <Property Name="EmployeeSession" Ref="EmployeeSessionController" />
+        <Property Name="IdReader" Ref="IdReader" />
+      </Object>
+    </Property>
+    <Property Name="Events">
+      <Object Name="Events" Type="BallyTech.Sds.Model.Events,BallyTech.Sds">
+        <Property Name="Model" Ref="SdsModel"/>
+        <Property Name="StandardEventDataBuilderCollection">
+          <Object Name="StandardEventDataBuilderCollection" Type="BallyTech.Sds.Model.StandardEventDataBuilderCollection,BallyTech.Sds">
+            <Property Name="Builders">
+              <List ItemType="BallyTech.Sds.Model.StandardEventDataMessageBuiderBase,BallyTech.Sds">
+                <Object Name ="StandardEventBlockBuilder" Type ="BallyTech.Sds.Model.StandardEventBlockBuilder,BallyTech.Sds" />
+                <Object Name ="TaggedStatusBlockBuilder" Type ="BallyTech.Sds.Model.TaggedStatusBlockBuilder,BallyTech.Sds" />
+                <Object Name ="AffectedEventBlockBuilder" Type ="BallyTech.Sds.Model.AffectedEventBlockBuilder,BallyTech.Sds" />
+                <Object Name ="BonusTaggedStatusBuilder" Type ="BallyTech.Sds.Model.BonusTaggedStatusBuilder,BallyTech.Sds" >
+                  <Property Name="Bonus" Ref="Bonus"/>
+                </Object>
+                <Object Name ="AffectedMeterBlockBuilder" Type ="BallyTech.Sds.Model.AffectedMeterBlockBuilder,BallyTech.Sds" />
+              </List>
+            </Property>
+          </Object>
+        </Property>
+      </Object>
+    </Property>
+	<Property Name="JackpotHandler">
+      <Object Name="JackpotHandler" Type="BallyTech.Sds.Model.JackpotHandler,BallyTech.Sds">
+        <Property Name="IsEmployeeAuthorizationRequired" Value="false"/>
+		<Property Name="TreatCancelCreditAsCelebration" Value="false"/>
+        <Property Condition="$PlayerType == 'SmartCashless'" Name="TaggedstatusDataAppender">
+          <Object Name="TaggedstatusDataAppender" Type="BallyTech.Sds.Model.Targets.JackpotTaggedstatusDataAppender,BallyTech.Sds">
+            <Property Name="Model" Ref="SdsModel"/>
+          </Object>
+        </Property>
+      </Object>
+    </Property>
+    <Property Name ="Targets">
+      <List>
+	   <Object Name="GameCap" Type="BallyTech.Sds.Model.GameCap, BallyTech.Sds">
+          <Property Name="GameCapProvider">
+            <Object Name="GameCapProvider" Type="BallyTech.Sds.Model.GameCapProvider, BallyTech.Sds">
+              <Property Name="GameCapInteraction">
+                <Object Name="GameCapInteraction" Type="BallyTech.Sds.Interaction.GameCapInteraction, BallyTech.Sds"/>
+              </Property>
+              <Property Name="Model" Ref="SdsModel"/>
+              <Property Name="IdReader" Ref="IdReader"/>
+              <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+              <Property Name="EmployeeSessionController" Ref="EmployeeSessionController" />
+			  <Property Name="PlayerTrackingSystem" Ref="PlayerTrackingSystem" />
+            </Object>
+          </Property>
+        </Object>
+        <Object Name="RemoteShutdown" Type="BallyTech.Sds.Model.RemoteShutdown, BallyTech.Sds">
+		    <Property Name="SiteScheduleReqTimeout" Value="60" />
+			<Property Name="DefaultWaitTime" Value="180" />
+			<Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+			<Property Name ="GameLockedByRemoteShutDown">
+				<Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+					<Property Name ="Name" Value="GameLockedByRemoteShutDown"/>
+					<Property Name="IsAccountable" Value="true"/>
+				</Object>
+			</Property>
+		  <Property Name="Model" Ref="SdsModel"/>
+		  <Property Name="SiteScheduleEnabled" Value="false"/>
+          <Property Name ="OverrideHandlers">
+            <List>
+              <Object Condition="$EnableRomSignature == 'true'" Name="EgmSoftwareAuthenticationOverride" Type="BallyTech.Sds.Model.Targets.EgmSoftwareAuthenticationOverride, BallyTech.Sds">
+                <Property Name="Model" Ref="SdsModel"/>
+              </Object>
+              <Object Name="AdministratorEgmLock" Type="BallyTech.Sds.Model.Targets.AdministratorEgmLock, BallyTech.Sds">
+                <Property Name="Model" Ref="SdsModel"/>
+                <Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+                <Property Name ="EgmLockedByExternalAdministrator">
+                  <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+                    <Property Name ="Name" Value="RequestByAdministrator"/>
+                    <Property Name="Priority" Value="AboveNormal"/>
+                  </Object>
+                </Property>
+              </Object>
+              <Object Name="SiteEgmLock" Type="BallyTech.Sds.Model.Targets.SiteEgmLock, BallyTech.Sds">
+                <Property Name="Model" Ref="SdsModel"/>
+                <Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+                <Property Name ="SiteLevelEgmLock">
+                  <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+                    <Property Name ="Name" Value="SiteLevelEgmLock"/>
+                    <Property Name="Priority" Value="AboveNormal"/>
+                  </Object>
+                </Property>
+              </Object>
+      </List>
+    </Property>
+		</Object>
+        <Object Name ="AccountAccessProvider" Type ="BallyTech.Sds.Model.ECash,BallyTech.Sds">
+		  <Property Name="AppendAdditionalBlockInBalanceMessage" Value="true"/>
+          <Property Name="EgmFundTransferTimeout" Value="00:01:00"/>
+		  <Property Name="CanForceCancelTransfer" Value="false"/>
+		  <Property Name="AutoDepositRetryHandler">
+				<Object Name="BallyTech.Sds.Model.AutoDepositRetryHandler" Type="BallyTech.Sds.Model.AutoDepositRetryHandler, BallyTech.Sds" >
+					<Property Name="Model" Ref="SdsModel"/>
+					<Property Name="Interval" Value="00:00:10"/>
+					<Property Name="MaxRetryInterval" Value="00:01:00"/>
+				</Object>
+			</Property> 
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+		   <Property Name="EmployeeSessionDependentAutoDepositRequestor">
+            <Object Name ="EmployeeSessionDependentAutoDepositRequestor" Type ="BallyTech.Sds.Model.EmployeeSessionDependentAutoDepositRequestor,BallyTech.Sds">             
+              <Property Name="ShouldAttemptAutoDepositOnEmployeeSessionFinish" Value="true"/>              
+            </Object>
+          </Property>	
+		  <Property Name="ForceGameDisableOnAutoDepositFailure" Value="true"/>
+          <Property Condition="$CardReader == 'Kcsm'" Name="TransferStrategy">
+            <Object Name ="ECashStrategy" Type ="BallyTech.Sds.Model.ECashStrategy,BallyTech.Sds">
+              <Property Name="Model" Ref="SdsModel"/>
+            </Object>
+          </Property>
+		  <Property Condition="$PlayerType == 'SmartCashless'" Name="AuthorizationBuilder">
+            <Object Name ="AuthorizationBuilder" Type ="BallyTech.Sds.Model.Targets.OfflineAuthorizationBuilder,BallyTech.Sds">
+              <Property Name="IdReader" Ref="IdReader"/>
+            </Object>
+          </Property>
+		   <Property Condition="$PlayerType == 'Cashless'" Name="TransferStrategy">
+            <Object Name ="ECashStrategy" Type ="BallyTech.Sds.Model.CashlessStrategy,BallyTech.Sds">
+              <Property Name="Model" Ref="SdsModel"/>
+            </Object>
+          </Property>
+          <Property Condition="$PlayerType == 'SmartCashless'" Name="TransferStrategy">
+            <Object Name ="ECashStrategy" Type ="BallyTech.Sds.Model.SmartCardStrategy,BallyTech.Sds">
+              <Property Name="Model" Ref="SdsModel"/>
+              <Property Name="AccountAccessProvider" Ref="SmartCardAccountAcessProvider"/>
+            </Object>
+          </Property>
+          <Property Condition="$CardReader == 'SmartCard'" Name="TransferStrategy">
+            <Object Name ="ECashStrategy" Type ="BallyTech.Sds.Model.SmartCardStrategy,BallyTech.Sds">
+              <Property Name="Model" Ref="SdsModel"/>
+              <Property Name="AccountAccessProvider" Ref="SmartCardAccountAcessProvider"/>              
+            </Object>
+          </Property>
+
+        </Object>
+        <Object Name ="Ticket" Type ="BallyTech.Sds.Model.Ticket,BallyTech.Sds">
+          <Property Name ="PropertyName" Value ="Mexico Gaming Systems"/>
+          <Property Name ="AddressLine1" Value ="First Lane"/>
+          <Property Name ="AddressLine2" Value ="Mexico"/>
+          <Property Name="MaxLogRecords" Value="35"/>
+		  <Property Name="TicketDisplayMasking" Value="111111111111110000"/>
+          <Property Name ="DebitTicketTitle" Value ="Debit Cashable Voucher"/>
+          <Property Name ="RestrictedTicketTitle" Value ="Playable Only"/>
+		  <!--The below properties are added for resolving pending ticket redemption issue's due to EGM communication time out.-->
+		  <Property Name ="WaitforEgmResponse" Value ="true"/>
+		  <Property Name ="EgmTicketTransferTimeout" Value ="00:01:00"/> 
+          <!--<Property Name ="SingleCouponEnabled" Value ="false"/>This interpid option is not supported anymore-->
+          <Property Name="TicketFormatType" Value ="Type5"/>
+        </Object>
+	<Object Name="PlayerInformationDisplay" Type="BallyTech.Sds.Model.PlayerInformationDisplay, BallyTech.Sds"/>        
+        <Object Name="JackpotAutopay" Type="BallyTech.Sds.Model.JackpotAutopay, BallyTech.Sds">
+        </Object>
+		<Object Condition="$PlayerType == 'SmartCashless'" Name="CelebrationLockup" Type="BallyTech.Sds.Model.SmartCardCelebrationLockupEventHandler,BallyTech.Sds">
+          <Property Name="IsProgressiveConsideredForCelebration" Value="true"/>
+          <Property Condition="$PlayerType == 'SmartCashless'" Name="AccountAccessProvider" Ref="SmartCardAccountAcessProvider" />
+          <Property Name="EgmLevelWin" Ref="EgmLevelWin" />
+        </Object >
+		 <Object Condition="$PlayerType == 'Cashless'" Name="CelebrationLockup" Type="BallyTech.Sds.Model.CelebrationLockupEventHandler,BallyTech.Sds">
+          <!--<Property Condition="$PlayerType == 'SmartCashless'" Name="AccountAccessProvider" Ref="SmartCardAccountAcessProvider" />-->
+          <Property Name="IsProgressiveConsideredForCelebration" Value="true"/>
+        </Object >
+        <!-- *** Is there no celebration lockup for Seminoles? Need to verify on this-->
+        <!--<Object Name="CelebrationLockup" Type="BallyTech.Sds.Model.CelebrationLockup,BallyTech.Sds">
+          <Property Condition="$CardReader == 'SmartCard'" Name="AccountAccessProvider" Ref="SmartCardAccountAcessProvider" />
+        </Object >-->
+        <Object Name ="JackpotSlipProcessor" Type ="BallyTech.Sds.Model.JackpotSlipProcessor,BallyTech.Sds">
+          <Property Name="TaxFormHandler" Ref="TaxFormHandler"/>		
+		</Object> 
+          <Object Name="PlayerPreCommitment" Type ="BallyTech.Sds.Model.PlayerPreCommitment, BallyTech.Sds">
+          <!--<Property Name="PCInteraction">
+            <Object Name="PCInteraction" Type="BallyTech.Sds.Model.PCInteraction, BallyTech.Sds"/>
+          </Property>-->
+		  <Property Name="SdsPreCommitment">
+            <Object Name="SdsPreCommitment" Type="BallyTech.Sds.Model.Precommitment.SdsPreCommitment, BallyTech.Sds">
+				<Property Name="Model" Ref="SdsModel"/>
+				<Property Name="SdsDisconnectMessage" Value="Pre-Commitment server not reachable, Limits will not be tracked"/>
+				<Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+				<Property Name="ShouldSupportLegacyPreCommitment" Value="true"/>
+				<Property Name="IsPCIncreaseLimitSupported" Value="false"/>
+				<Property Name="IsPCPlayerActivitySupported" Value="false"/>
+				<Property Name="IsPCUnEnrollmentSupported" Value="false"/>
+				<Property Name="ShouldSendEnrollmentRequestRejectedByPlayerToServer" Value="false"/>
+				<Property Name="SessionCounter" Ref="SessionCounter"/>
+				<Property Name="PreCommitmentInteraction">	
+					<Object Name="PreCommitmentInteraction" Type="BallyTech.PreCommitment.Interaction.PreCommitmentInteraction, BallyTech.PreCommitment"/>
+				 </Property>
+				 <Property Name="ShouldDisableGameOnPcNotification" Value="true"/>
+				<Property Name="PrecommitmentDisconnectHandler">				
+					<Object Name="PrecommitmentDisconnectHandler" Type="BallyTech.Sds.Model.Precommitment.PrecommitmentDisconnectHandler, BallyTech.Sds">
+					  <Property Name="PlayerPreCommitment" Ref="PlayerPreCommitment"/>
+					  <Property Name="SdsPreCommitment" Ref="SdsPreCommitment"/>
+					  <Property Name="Model" Ref="SdsModel"/>
+					  <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+					  <Property Name="PreCommitmentInteraction" Ref="PreCommitmentInteraction"/>	
+					</Object>
+				</Property>						
+			</Object>
+          </Property>         
+          
+          <Property Name="IsPCMandatoryMessageEnabled" Value="true"/>
+          <Property Name="PCMandatoryMessageHandler" Ref="PCMandatoryMessageHandler"/>
+          <Property Name="SessionCounter" Ref="SessionCounter"/>         
+        </Object>
+
+        <Object Name ="Bonus" Type ="BallyTech.Sds.Model.Bonus,BallyTech.Sds">
+          <Property Name="Model" Ref="SdsModel"/>
+          <Property Name="IsMachinePaidEventAlreadySentByGame" Value="true"/>
+        </Object>
+		<!-- <Object Name="SystemCharacteristics" Type="BallyTech.Sds.Model.SystemCharacteristics, BallyTech.Sds"> -->
+			<!-- <Property Name="Model" Ref="SdsModel"/> -->
+		<!-- </Object>		 -->
+		<Object Condition="$EnableRomSignature == 'true'" Name="GameRomVerification" Type="BallyTech.Sds.Model.Targets.SoftwareAuthentication, BallyTech.Sds">
+          <Property Condition="$EgmProtocol == 'Sas'" Name="MessageDispatcher">
+            <Object Name="MessageDispatcher" Type="BallyTech.Sds.Model.Targets.EgmSoftwareAuthentication.MessageDispatcher.RomVerificationMessageDispatcher, BallyTech.Sds" />
+          </Property>
+                <Property Name ="EgmLockHandler" Ref="EgmLockHandler"/>
+ 			<Property Name ="GameLockRequestOnRomVerification">
+                  <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core">
+				<Property Name ="Name" Value="RomSignVerifyModule"/>
+				<Property Name="Priority" Value="1"/>
+                  </Object>
+                </Property>
+        </Object>
+        <!-- <Object Name="GeneralNotificationDisplay" Type="BallyTech.Sds.Model.Targets.GeneralNotificationDisplay, BallyTech.Sds"> -->
+          <!-- <Property Name="Model" Ref="SdsModel"/> -->
+          <!-- <Property Name="PlayerSessionController" Ref="PlayerSessionController"/> -->
+          <!-- <Property Name ="EgmLockHandler" Ref="EgmLockHandler"/> -->
+          <!-- <Property Name ="NotificationMessageEgmLock"> -->
+            <!-- <Object Type ="BallyTech.Gtm.Core.LockRequestor, BallyTech.Gtm.Core"> -->
+              <!-- <Property Name ="Name" Value="RequestBySystemNotifcation"/> -->
+              <!-- <Property Name="Priority" Value="AboveNormal"/> -->
+            <!-- </Object> -->
+          <!-- </Property> -->
+        <!-- </Object> -->
+		 <!-- <Object Name="Communication" Type="BallyTech.Sds.Model.Communication, BallyTech.Sds"> -->
+			<!-- <Property Name="Interval" Value="00:02:00"/> -->
+			<!-- <Property Name="PlayerSessionController" Ref="PlayerSessionController" /> -->
+			<!-- <Property Name="Schedule" Ref="Schedule" /> -->
+		 <!-- </Object> -->
+	    <Object Name="GmuSettings" Type="BallyTech.Sds.Model.Targets.GmuSettings, BallyTech.Sds" >		    
+			<Property Name="Model" Ref="SdsModel"/>		 
+		</Object>
+	  </List>
+    </Property>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'"  Name="PCMandatoryMessageHandler" Type="BallyTech.Sds.Model.PCMandatoryMessageHandler, BallyTech.Sds">
+    <Property Name="PCMandatoryMessageTimer" Value="00:10:00"/>
+    <Property Name="MessageWithOutCard">
+      <Dictionary>
+        <Entry Name="Message1" Value="Pre-commitment is available now"/>
+        <Entry Name="Message2" Value="Player Activity Statements are available on request"/>
+        <Entry Name="Message3" Value="Think! About your Choice, Call Gambling Help 1800 858 858 www.gamblinghelp.nsw.gov.au"/>
+      </Dictionary>
+    </Property>
+    <Property Name="MessageForPlayersEnrolledForPC">
+      <Dictionary>
+        <Entry Name="Message1" Value="Think! About your Choice, Call Gambling Help 1800 858 858 www.gamblinghelp.nsw.gov.au"/>
+      </Dictionary>
+    </Property>
+    <Property Name="MessageForPlayersNotEnrolledForPC">
+      <Dictionary>
+        <Entry Name="Message1" Value="Pre-commitment is available now"/>
+        <Entry Name="Message2" Value="Player Activity Statements are available on request"/>
+        <Entry Name="Message3" Value="Think! About your Choice, Call Gambling Help 1800 858 858 www.gamblinghelp.nsw.gov.au"/>
+      </Dictionary>
+    </Property>
+  </Object>
+  <Object Condition="$Server == 'Sds'and $CardReader == 'SmartCard'" Name="AutoFundsMonitor" Type="BallyTech.Sds.Model.AutoFundsMonitor,BallyTech.Sds">
+    <Property Name="SessionController" Ref="PlayerSessionController"/>   
+    <Property Name="Egm" Ref="EgmModel"/>
+    <Property Name="IdReader" Ref="IdReader"/>
+    <Property Name="AccountAccessor" Ref="AccountAccessProvider"/>
+    <Property Name="BonusingSession" Ref="EliteBonusingModel"/>
+  </Object>
+
+  <Object Condition="($Server == 'Sds'and $CardReader == 'SmartCard') or $PlayerType == 'SmartCashless'" Name="SmartCardTransferHandler" Type="BallyTech.Sds.Model.SmartCardTransferHandler,BallyTech.Sds">
+    <Property Name="AccessProvider" Ref="SmartCardAccountAcessProvider"/>    
+  </Object>
+
+  <Object Condition="$Server == 'Sds'and $CardReader == 'SmartCard'" Name="DisableBillValidator" Type="BallyTech.Sds.Model.Targets.DisableBillValidator,BallyTech.Sds">
+    <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+    <Property Name="Egm" Ref="EgmModel"/>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'and $CardReader == 'Kcsm'" Name ="IdReader" Type ="BallyTech.Sds.Model.PatternMatchingIdReader,BallyTech.Sds">
+    <Property Name ="PhysicalIdReader" Ref ="PhysicalIdReader"/>
+    <Property Name="PatternMatcher" Ref="PatternMatcher" />
+	<Property Name="IsLegacySupport" Value="false" />
+    <Property Name="Model" Ref="SdsModel"/>
+  </Object >
+
+  <Object Condition="$Server == 'Sds'and $CardReader == 'SmartCard'" Name ="IdReader" Type ="BallyTech.Sds.Model.SmartCardIdReader,BallyTech.Sds">
+    <Property Name ="PhysicalIdReader" Ref ="PhysicalIdReader"/>
+    <Property Name="Model" Ref="SdsModel"/>
+    <Property Name="PinRetryCount" Value="5"/>
+    <Property Name="BonusingSession" Ref="EliteBonusingModel"/>
+    <Property Name ="MinSamAmount" Value = "10000"/>
+    <Property Name ="MaxSamAmount" Value = "10000000"/>
+  </Object >
+
+  <Object Condition="$EbsEnabledatSite == 'true'" Name="EgmButtonModel" Type="BallyTech.EliteBonusing.v13.Client.Promotions.Tournament.EgmButton.EgmButtonModel, BallyTech.EliteBonusing.v13.Client">
+  </Object>
+
+  <Object Condition="$Server == 'Sds'and $CardReader == 'SmartCard'" Name="DiagnosticServiceModel" Type="BallyTech.DiagnosticServices.Model.DiagnosticServiceModel, BallyTech.DiagnosticServices">
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+    <Property Name="PhysicalIdReader" Ref="PhysicalIdReader" />
+    <Property Name="Egm" Ref="EgmModel" />
+    <Property Name="PackageServiceModel" Ref="PackageServiceModel" />
+    <Property Name="G2SLink" Ref="G2SModel" />
+    <Property Name="Link" Ref="SdsModel" />
+    <Property Name="FloorService" Ref="FloorServiceModel" />
+    <Property Name="HttpPort" Value="8001"/>
+    <Property Name="HttpEbsHandler" Value="EBS"/>
+    <Property Name="EBSDiagnosticService" Ref="EliteBonusingModel" />
+	<Property Name="DiagnosticConfigItems">
+      <Object Type="BallyTech.DiagnosticServices.DiagnosticConfigItems, BallyTech.DiagnosticServices">
+        <Property Name="Hosts">
+          <List>
+            <Object Type="BallyTech.DiagnosticServices.Host, BallyTech.DiagnosticServices">
+              <Property Name="UseVendorSpecificOption" Value="true" />
+              <Property Name="AssociatedIPAddressKey" Value="EBS" />
+              <Property Name="DiagnosticPort" Value="80" />
+              <Property Name="DiagnosticServiceGateway" Value="PlatformService/PlatformService.svc"/>
+              <Property Name="Url" Value="http://ebssds.bally.systems/PlatformService/PlatformService.svc" />
+              <Property Name="HostName" Value="ebssds.bally.systems" />
+              <Property Name="IsDeviceDetailsRequired" Value="true" />
+              <Property Name="EventLevel" Value="1" />
+			  <Property Name="SiteID" Value="1"/>
+            </Object>
+          </List>
+        </Property>
+      </Object>
+    </Property>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'" Name="PatternMatcher" Type ="BallyTech.Sds.Model.PatternMatcher,BallyTech.Sds">
+    <Property Name ="PatternMatcherAndFormatter">
+      <Dictionary>
+        <Entry Name ="^\[5]d{12}"                Ref ="EmployeeFormat1"/>
+        <Entry Name ="\d{17}"                    Ref ="PlayerFormat7"/>
+        <Entry Name ="^\[2]d{12}"                Ref ="PlayerFormat1"/>
+        <Entry Name ="^\d{3}[0]\d{5}\w{4}$"      Ref ="EmployeeFormat1"/>
+        <Entry Name ="^\d{3}[0]\d{7}$"           Ref ="PlayerFormat2"/>
+        <Entry Name ="^\d{3}[0][6][0]\d{12}$"    Ref ="EmployeeFormat2"/>
+        <Entry Name ="^\d{3}[0][9][0]\d{12}$"    Ref ="EmployeeFormat2"/>
+        <Entry Name ="^\d{2}[^0]\d{9}$"          Ref ="PlayerFormat3"/>
+        <Entry Name ="^\d{3}[^0]\d{9}$"          Ref ="PlayerFormat1"/>
+        <Entry Name ="^\d{3}[1][6][5]\d{12}$"    Ref ="PlayerFormat4"/>
+        <Entry Name ="^[3]\w{17}"                Ref ="PlayerFormat1"/>
+        <Entry Name="^\d{3}[0]\d*[a-zA-Z][a-zA-Z0-9]*$"   Ref ="EmployeeFormat1"/>
+		<!--Seminoles from here -->
+        <Entry Name="^[7][8]\d{9}" 				 Ref ="EmployeeFormat3"/>
+        <Entry Name="^[7][7]\d{9}" 			     Ref ="PlayerFormat5"/>
+        <Entry Name="^\d*[a-zA-Z][a-zA-Z0-9]*$"  Ref ="PlayerFormat6"/>
+        <!--Seminoles to here -->
+
+        <!--<Entry Name ="^\d{3}[Z]\d{16}"           Value ="C,0,1,2,=0,=0,=0,=0,=0,=0,=0,=0,=0,=0"/>-->
+      </Dictionary>
+    </Property>
+  </Object>
+
+
+  <Object Condition="$Server == 'Sds'" Name="EmployeeFormat1" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="E"/>
+    <Property Name="CasinoId" Value="0,1,2" />
+    <Property Name="SdsAccountNumber" Value="9,10,11,12"/>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'" Name="EmployeeFormat2" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="E"/>
+    <Property Name="AccountType" Value="1"/>
+    <Property Name="CasinoId" Value="=1,=6,=5" />
+    <Property Name="SdsAccountNumber" Value="14,15,16,17"/>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'" Name="PlayerFormat1" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="P"/>
+    <Property Name="CasinoId" Value="0,1,2" />
+    <Property Name="SdsAccountNumber" Value="3,4,5,6,7,8,9,10,11,12"/>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'" Name="PlayerFormat2" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="P"/>
+    <Property Name="CasinoId" Value="0,1,2" />
+    <Property Name="SdsAccountNumber" Value="=1,4,5,6,=0,=1,=2,=3,=4,=5"/>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'" Name="PlayerFormat3" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="P"/>
+    <Property Name="CasinoId" Value="=0,0,1" />
+    <Property Name="SdsAccountNumber" Value="2,3,4,5,6,7,8,9,10,11"/>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'" Name="PlayerFormat4" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="P"/>
+    <Property Name="CasinoId" Value="3,4,5" />
+    <Property Name="SdsAccountNumber" Value="=1,=0,10,11,12,13,14,15,16,17"/>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'" Name="EmployeeFormat3" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="E"/>
+    <Property Name="CasinoId" Value="0,1" />
+    <Property Name="SdsAccountNumber" Value="7,8,9,10"/>
+  </Object>
+  
+  <Object Condition="$Server == 'Sds'" Name="PlayerFormat5" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="P"/>
+    <Property Name="CasinoId" Value="0,1" />
+    <Property Name="SdsAccountNumber" Value="=1,2,3,4,5,6,7,8,9,10"/>
+  </Object>
+
+  <Object Condition="$Server == 'Sds'" Name="PlayerFormat6" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="P"/>
+    <Property Name="CasinoId" Value="0,1,2" />
+    <Property Name="SdsAccountNumber" Value="3,4,5,6,7,8,9,10,11,12"/>
+  </Object>
+  
+  <Object Condition="$Server == 'Sds'" Name="PlayerFormat7" Type="BallyTech.Sds.Model.CardFormatter,BallyTech.Sds">
+    <Property Name="CardType" Value="P"/>
+    <Property Name="CasinoId" Value="0,1,2" />
+    <Property Name="SdsAccountNumber" Value="3,4,5,6,7,8,9,10,11,12,13,14,15,16"/>
+  </Object>
+  
+	<Object Condition="$PlayerType == 'SmartCashless' or $PlayerType == 'Cashless'" Name="AutoTopupHandler" Type="BallyTech.Sds.Model.AutoTopupHandler,BallyTech.Sds">
+    <Property Name="IdReader" Ref="IdReader"/>
+    <Property Name="Model" Ref="SdsModel"/>
+    <Property Name="AccountAccessor" Ref="AccountAccessProvider"/>
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="BonusingSession" Ref="EliteBonusingClientModel"/>
+  </Object>
+
+  <Object Condition="$PlayerType == 'SmartCashless' or $PlayerType == 'Cashless'" Name="AutoDownloadHandler" Type="BallyTech.Sds.Model.AutoDownloadHandler,BallyTech.Sds">
+    <Property Name="SessionController" Ref="PlayerSessionController"/>
+    <Property Name="IdReader" Ref="IdReader"/>
+    <Property Name="AccountAccessor" Ref="AccountAccessProvider"/>
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="BonusingSession" Ref="EliteBonusingClientModel"/>
+  </Object>
+  <Object Condition="$EgmProtocol == 'XSeries' or $EgmProtocol == 'QCom'"  Name="FreePlayRebateMonitor" Type="BallyTech.PlayerTerminal.Interaction.FreePlayRebateMonitor, BallyTech.PlayerTerminal.Interaction">
+    <Property Name="Egm" Ref="EgmModel" />
+    <!-- implied dependency: PlayerSessionController -->
+    <Property Name="MinimumRedemptionAmount" Value="5.00" />
+    <Property Name="MaximumToRedeemPerSession" Value="100.00" />
+  </Object>
+
+  <Object Condition="$Server == 'Sds' and ($EgmProtocol == 'XSeries' or $EgmProtocol == 'QCom')" Name="UnderlyingAccountAccessProvider" Type="BallyTech.PlayerTerminal.Interaction.FreePlayRebateAccountAccessProviderDecorator, BallyTech.PlayerTerminal.Interaction">
+    <Property Name="AccountAccessProvider" Ref="AccountAccessProvider" />
+    <!-- implied dependency: FreePlayRebateMonitor -->
+  </Object>
+
+  <Object Condition="$CardReader == 'Kcsm'" Name="KcsmIlluminationController" Type="BallyTech.DisplayManager.IlluminationController, BallyTech.DisplayManager">
+    <Property Name="IlluminationBezel"  Ref="PhysicalIdReader" />
+    <Property Name="Downlink"           Ref="EgmModel" />
+    <Property Condition="$Server == 'Sds'" Name="Uplink"	Ref="SdsModel" />
+    <Property Condition="$Server == 'Acsc-GNS'" Name="Uplink"   Ref="AcscModel" />
+    <Property Name="IdReader"           Ref="IdReader" />
+    <Property Name="PhysicalIdReader"   Ref="PhysicalIdReader" />
+    <Property Name="PlayerSessionController"              Ref="PlayerSessionController" />
+    <Property Name ="EmployeeSessionController" Ref ="EmployeeSessionController"/>
+    <Property Name="IlluminationStates">
+      <List>
+        <Object Name="EGMAndHostOffline" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="" />
+          <Property Name="ProhibitedStates" Value="EgmCommunicationPresent, HostCommunicationPresent" />
+          <Property Name="Color"           Value="Blue" />
+          <Property Name="Pattern"         Value="ChasingEdgeToCenter" />
+          <Property Name="LogoLightPattern"         Value="BlinkRed" />
+        </Object>
+        <Object Name="InvalidIdPresentedInIdReaderAtEGMOffline" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="InvalidIdPresent" />
+          <Property Name="ProhibitedStates" Value="EgmCommunicationPresent" />
+          <Property Name="Color"           Value="Red" />
+          <Property Name="Pattern"         Value="ChasingEdgeToCenter" />
+          <Property Name="LogoLightPattern"         Value="BlinkAmber" />
+        </Object>
+        <Object Name="InvalidIdPresentedInIdReaderAtHostOffline" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="InvalidIdPresent" />
+          <Property Name="ProhibitedStates" Value="HostCommunicationPresent" />
+          <Property Name="Color"           Value="Red" />
+          <Property Name="Pattern"         Value="Alternating" />
+          <Property Name="LogoLightPattern"         Value="BlinkRed" />
+        </Object>
+        <Object Name="InvalidIdPresentedInIdReader" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="InvalidIdPresent" />
+          <Property Name="ProhibitedStates" Value="" />
+          <Property Name="Color"           Value="Red" />
+          <Property Name="Pattern"         Value="On" />
+          <Property Name="LogoLightPattern"         Value="BlinkAmber" />
+        </Object>
+        <Object Name="CardedSessionPresentAtEGMOffline" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent, IdValidated, IdSessionPresent" />
+          <Property Name="ProhibitedStates" Value="EgmCommunicationPresent" />
+          <Property Name="Color" Value="Lime" />
+          <Property Name="Pattern" Value="ChasingEdgeToCenter" />
+          <Property Name="LogoLightPattern"         Value="Amber" />
+        </Object>
+        <Object Name="ValidIdPresentedAtEGMOffline" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent" />
+          <Property Name="ProhibitedStates" Value="EgmCommunicationPresent" />
+          <Property Name="Color"           Value="Red" />
+          <Property Name="Pattern"         Value="ChasingEdgeToCenter" />
+          <Property Name="LogoLightPattern"         Value="BlinkRed" />
+        </Object>
+        <Object Name="PlayerSessionAbandonedAtEGMOffline" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent, IdSessionExpired" />
+          <Property Name="ProhibitedStates" Value="EgmCommunicationPresent" />
+          <Property Name="Color" Value="Red" />
+          <Property Name="Pattern" Value="ChasingEdgeToCenter" />
+          <Property Name="LogoLightPattern"         Value="BlinkAmber" />
+        </Object>
+        <Object Name="HostCommunicationPresent" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="" />
+          <Property Name="ProhibitedStates" Value="EgmCommunicationPresent" />
+          <Property Name="Color" Value="Blue" />
+          <Property Name="Pattern" Value="ChasingEdgeToCenter" />
+          <Property Name="LogoLightPattern"         Value="Amber" />
+        </Object>
+        <Object Name="CardedSessionPresentAtHostOffline" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent, IdValidated, IdSessionPresent" />
+          <Property Name="ProhibitedStates" Value="HostCommunicationPresent" />
+          <Property Name="Color" Value="Lime" />
+          <Property Name="Pattern" Value="Alternating" />
+          <Property Name="LogoLightPattern"         Value="BlinkRed" />
+        </Object>
+        <Object Name="ValidIdPresentedAtHostOffline" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent" />
+          <Property Name="ProhibitedStates" Value="HostCommunicationPresent" />
+          <Property Name="Color"           Value="Red" />
+          <Property Name="Pattern" Value="Alternating" />
+          <Property Name="LogoLightPattern"         Value="BlinkRed" />
+        </Object>
+        <Object Name="PlayerSessionAbandonedAtHostOffline" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent, IdSessionExpired" />
+          <Property Name="ProhibitedStates" Value="HostCommunicationPresent" />
+          <Property Name="Color" Value="Red" />
+          <Property Name="Pattern" Value="Alternating" />
+          <Property Name="LogoLightPattern"         Value="BlinkRed" />
+        </Object>
+        <Object Name="EgmCommunicationPresent" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="EgmCommunicationPresent" />
+          <Property Name="ProhibitedStates" Value="HostCommunicationPresent" />
+          <Property Name="Color" Value="Blue" />
+          <Property Name="Pattern" Value="Alternating" />
+          <Property Name="LogoLightPattern"         Value="BlinkRed" />
+        </Object>
+        <Object Name="CardedSessionPresent" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent, IdValidated, IdSessionPresent" />
+          <Property Name="ProhibitedStates" Value="" />
+          <Property Name="Color" Value="Lime" />
+          <Property Name="Pattern" Value="On" />
+          <Property Name="LogoLightPattern"         Value="Amber" />
+        </Object>
+        <Object Name="PlayerSessionPresentWithInvalidId" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="IdSessionPresent" />
+          <Property Name="ProhibitedStates" Value="ValidIdPresent, InvalidIdPresent" />
+          <Property Name="Color" Value="Cyan" />
+          <Property Name="Pattern" Value="On" />
+          <Property Name="LogoLightPattern"         Value="Amber" />
+        </Object>
+        <Object Name="PlayerSessionAbandoned" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent, IdSessionExpired" />
+          <Property Name="ProhibitedStates" Value="" />
+          <Property Name="Color" Value="Red" />
+          <Property Name="Pattern" Value="On" />
+          <Property Name="LogoLightPattern"         Value="BlinkAmber" />
+        </Object>
+        <Object Name="ValidIdReadWithValidationFailure" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent, IdValidationFailed" />
+          <Property Name="ProhibitedStates" Value="" />
+          <Property Name="Color" Value="Red" />
+          <Property Name="Pattern" Value="On" />
+          <Property Name="LogoLightPattern"         Value="BlinkAmber" />
+        </Object>
+        <Object Name="ValidIdPresent" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="ValidIdPresent" />
+          <Property Name="ProhibitedStates" Value="IdSessionPresent" />
+          <Property Name="Color" Value="Yellow" />
+          <Property Name="Pattern" Value="On" />
+          <Property Name="LogoLightPattern"         Value="Amber" />
+        </Object>
+        <Object Name="SasAndHostCommunicationPresent" Type="BallyTech.DisplayManager.IlluminationState, BallyTech.DisplayManager">
+          <Property Name="RequiredStates" Value="EgmCommunicationPresent, HostCommunicationPresent" />
+          <Property Name="ProhibitedStates" Value="" />
+          <Property Name="Color" Value="Blue" />
+          <Property Name="Pattern" Value="On" />
+          <Property Name="LogoLightPattern"         Value="Amber" />
+        </Object>
+      </List>
+    </Property>
+  </Object>
+  <!--***************************************END OF KCSM ILLUMINTION BEZEL CONFIGURATION *************************************-->
+
+  <Object Name="DisplayManager" Type="BallyTech.Gtm.Launcher.DisplayManagerModel, BallyTech.Gtm.Launcher">
+    <Property Name="IdReader" Ref="IdReader" />
+    <Property Name="PlayerSessionController"              Ref="PlayerSessionController" />
+    <Property Name ="EmployeeSessionController" Ref ="EmployeeSessionController"/>
+    <Property Name="ActionProcessors">
+      <List>
+        <!-- Asset number group. -->
+        <Object Condition="$EgmProtocol == 'XSeries'" Name="ActionProcessor" Type="BallyTech.Nsw.Interaction.EgmActionProcessor, BallyTech.Nsw">
+          <Property Name="Name" Value="Egm" />
+          <Property Name ="Model" Ref ="EgmModel"/>
+          <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+        </Object>
+        <Object Condition="$EgmProtocol == 'Sas'" Name="ActionProcessor" Type="BallyTech.Sas.Interaction.EgmActionProcessor, BallyTech.Sas">
+          <Property Name="Name" Value="Egm" />
+          <Property Name ="Model" Ref ="EgmModel"/>
+          <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+        </Object>
+        <Object Condition="$EgmProtocol == 'Asp'" Name="ActionProcessor" Type="BallyTech.Asp.Interaction.EgmActionProcessor, BallyTech.Asp">
+          <Property Name="Name" Value="Egm" />
+          <Property Name ="Model" Ref ="EgmModel"/>
+        </Object>
+        <Object Condition="$EgmProtocol == 'Grips'" Name="ActionProcessor" Type="BallyTech.Grips.Interaction.EgmActionProcessor, BallyTech.Grips">
+          <Property Name="Name" Value="Egm" />
+          <Property Name ="Model" Ref ="EgmModel"/>
+          <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+        </Object>
+		<Object Condition="$EgmProtocol == 'IDP'" Name="ActionProcessor" Type=" BallyTech.IDP.Client.Interaction.EgmActionProcessor,  BallyTech.IDP.Client">
+          <Property Name="Name" Value="Egm" />
+          <Property Name ="Model" Ref ="EgmModel"/>      
+        </Object>
+        <!--These Objects required for running CDK -->
+        <Object Condition="$EgmProtocol == 'Cdk'" Name="ActionProcessor" Type="BallyTech.TestDrivers.MockEgmActionProcessor, BallyTech.TestDrivers">
+          <Property Name="Name" Value="Egm" />
+          <Property Name ="Model" Ref ="EgmModel"/>
+          <Property Name="PlatformInfo" Ref="PlatformInfoModel"/>
+        </Object>
+        <!--These Objects required for running CDK -->
+        <Object Condition="$EgmProtocol == 'Cdk' and $CardReader == 'SmartCard'" Name="SmartCardTestActionProcessor" Type="BallyTech.TestDrivers.SmartCardTestActionProcessor, BallyTech.TestDrivers">
+          <Property Name="Name" Value="SmartCard"/>
+          <Property Name="Model" Ref="PhysicalIdReader"/>
+        </Object>
+        <Object Name="DownloadFilesActionProcessor" Type="BallyTech.EnhancedDownload.Model.DownloadFilesActionProcessor, BallyTech.EnhancedDownload">
+          <Property Name="Name" Value="EnhancedDownload" />
+          <Property Name="Model" Ref="EnhancedDownloadModel" />
+        </Object>
+        <Object Condition="$EgmProtocol == 'XSeries'" Name="FreePlayRebateActionProcessor" Type="BallyTech.PlayerTerminal.Interaction.FreePlayRebateActionProcessor, BallyTech.PlayerTerminal.Interaction">
+          <Property Name="Name" Value="FPRAT" />
+          <Property Name ="Egm" Ref ="EgmModel"/>
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+          <Property Name="AccountAccessProvider" Ref="UnderlyingAccountAccessProvider"/>
+          <Property Name="FreePlayRebateMonitor" Ref="FreePlayRebateMonitor" />
+        </Object>
+	<Object Condition="$EgmProtocol == 'QCom'" Name="FreePlayRebateActionProcessor" Type="BallyTech.PlayerTerminal.Interaction.FreePlayRebateBasedOnSlotBusyStatusActionProcessor, BallyTech.PlayerTerminal.Interaction">
+          <Property Name="Name" Value="FPRAT" />
+          <Property Name ="Egm" Ref ="EgmModel"/>
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+          <Property Name="AccountAccessProvider" Ref="UnderlyingAccountAccessProvider"/>
+          <Property Name="FreePlayRebateMonitor" Ref="FreePlayRebateMonitor" />
+        </Object>
+		<Object Condition="$Server == 'Sds'" Name="AlternateAccountLookupActionProcessor" Type="BallyTech.Sds.Interaction.AlternateAccountLookupActionProcessor, BallyTech.Sds">
+		  <Property Name="Name" Value="Player"/>
+		  <Property Name="AlternateAccountLookup" Ref="AlternateAccountLookup"/>
+		</Object>
+		<Object Name="AccountLookupActionProcessor" Type="BallyTech.AccountLookupCoordinator.AccountLookupCoordinatorActionProcessor, BallyTech.AccountLookupCoordinator">
+		  <Property Name="Name" Value="AccountLookup"/>
+		  <Property Name="LookupModel" Ref="AccountLookupCoordinatorModel"/>
+        </Object>
+        <Object Condition="$Server == 'Sds' and $CardReader == 'Kcsm'" Name="ECashActionProcessor" Type="BallyTech.Sds.Interaction.ECashActionProcessor, BallyTech.Sds">
+          <Property Name="Name" Value="ECash"/>
+          <Property Name ="Egm" Ref ="EgmModel"/>
+          <Property Name ="Model" Ref ="SdsModel"/>
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+          <Property Name="PlayerTrackingSystem" Ref="PlayerTrackingSystem" />
+	      <Property Condition="$EgmProtocol != 'XSeries' and $EgmProtocol != 'QCom'"  Name="AccountAccessProvider" Ref="AccountAccessProvider"/> 
+          <Property Condition="$EgmProtocol == 'XSeries' or $EgmProtocol == 'QCom'"  Name="AccountAccessProvider" Ref="UnderlyingAccountAccessProvider"/>          
+          <Property Name="EmployeeSession" Ref="EmployeeSessionController"/>
+          <Property Name="G2SLink" Ref="G2SModel" />
+          <Property Name="ECashMessageTimeOut" Value="0:00:10" />
+          <Property Name="ECashMessageMatchers">
+            <List>
+              <Object Type="BallyTech.Sds.Model.ECashAccountLockedMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="Invalid PIN - Account Locked" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashInvalidPinMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="Invalid Pin" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashBalanceMatcher, BallyTech.Sds">
+                <!-- MYPOINTS= 100.00, MYFREEPLAY= 500.00, MYCASHPLAY= 250.00 -->
+                <!-- PtsBal = 100.00 & PromoBal= 500.00 -->
+                <Property Name="Pattern" Value="\s*(([^=]+)\s*=\s*\$?(\d+\.?\d*)\s*(?:\&amp;|\,)?\s*)+" />
+                <Property Name="CaptureVariableList">
+                  <List>
+                    <Object Type="BallyTech.Sds.Model.SdsCaptureVariable, BallyTech.Sds">
+                      <Property Name="PropertyName" Value="AccountTag" />
+                      <Property Name="PropertyValueGroupIndex" Value="2" />
+                      <Property Name="CountPropertyName" Value="NumberOfAccounts" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.SdsCaptureVariable, BallyTech.Sds">
+                      <Property Name="PropertyName" Value="AccountBalance" />
+                      <Property Name="PropertyValueGroupIndex" Value="3" />
+                      <Property Name="CountPropertyName" Value="NumberOfAccounts" />
+                    </Object>
+                  </List>
+                </Property>
+                <Property Name="AccountTypeMatchers">
+                  <List>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYPOINTS|PtsBal)" />
+                      <Property Name="AccountName" Value="Points" />
+                      <Property Name="AccountType" Value="Points" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYFREEPLAY|MYPROMO|PromoBal)" />
+                      <Property Name="AccountName" Value="Promo" />
+                      <Property Name="AccountType" Value="Promotional" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYCASHPLAY|CashBal)" />
+                      <Property Name="AccountName" Value="Cash" />
+                      <Property Name="AccountType" Value="Cash" />
+                    </Object>
+                  </List>
+                </Property>
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashErrorMatcher, BallyTech.Sds">
+                <!-- Any other message -->
+                <Property Name="Pattern" Value="(.*)" />
+              </Object>
+            </List>
+          </Property>
+        </Object>
+        <Object Condition="$Server == 'Sds' and $CardReader == 'SmartCard'" Name="ECashActionProcessor" Type="BallyTech.Sds.Interaction.SmartCardScreen.SmartCardEcashActionProcessor, BallyTech.Sds">
+          <Property Name="Name" Value="ECash"/>
+          <Property Name ="Egm" Ref ="EgmModel"/>
+          <Property Name ="Model" Ref ="SdsModel"/>
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+          <Property Name="PlayerTrackingSystem" Ref="PlayerTrackingSystem" />
+          <Property Name="AccountAccessProvider" Ref="AccountAccessProvider"/>
+          <Property Name="EmployeeSession" Ref="EmployeeSessionController"/>
+          <Property Name="G2SLink" Ref="G2SModel" />
+          <Property Name="ECashMessageTimeOut" Value="0:00:10" />
+          <Property Name ="IdReader" Ref ="IdReader"/>
+          <Property Name="ECashMessageMatchers">
+            <List>
+              <Object Type="BallyTech.Sds.Model.ECashAccountLockedMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="Invalid PIN - Account Locked" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashInvalidPinMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="Invalid Pin" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.BalanceStartMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="^[^(?:\&amp;|\,=)]*[?:\&amp;|\,]+" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashBalanceMatcher, BallyTech.Sds">
+                <!-- MYPOINTS= 100.00, MYFREEPLAY= 500.00, MYCASHPLAY= 250.00 -->
+                <!-- PtsBal = 100.00 & PromoBal= 500.00 -->
+                <Property Name="Pattern" Value="\s*(([^=]+)\s*=\s*\$?(\d+\.?\d*)\s*(?:\&amp;|\,)?\s*)+" />
+                <Property Name="CaptureVariableList">
+                  <List>
+                    <Object Type="BallyTech.Sds.Model.SdsCaptureVariable, BallyTech.Sds">
+                      <Property Name="PropertyName" Value="AccountTag" />
+                      <Property Name="PropertyValueGroupIndex" Value="2" />
+                      <Property Name="CountPropertyName" Value="NumberOfAccounts" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.SdsCaptureVariable, BallyTech.Sds">
+                      <Property Name="PropertyName" Value="AccountBalance" />
+                      <Property Name="PropertyValueGroupIndex" Value="3" />
+                      <Property Name="CountPropertyName" Value="NumberOfAccounts" />
+                    </Object>
+                  </List>
+                </Property>
+                <Property Name="AccountTypeMatchers">
+                  <List>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYPOINTS|PtsBal)" />
+                      <Property Name="AccountName" Value="Points" />
+                      <Property Name="AccountType" Value="Points" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYFREEPLAY|MYPROMO|PromoBal)" />
+                      <Property Name="AccountName" Value="Promo" />
+                      <Property Name="AccountType" Value="Promotional" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYCASHPLAY|CashBal)" />
+                      <Property Name="AccountName" Value="Cash" />
+                      <Property Name="AccountType" Value="Cash" />
+                    </Object>
+                  </List>
+                </Property>
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashErrorMatcher, BallyTech.Sds">
+                <!-- Any other message -->
+                <Property Name="Pattern" Value="(.*)" />
+              </Object>
+            </List>
+          </Property>
+        </Object>
+        <Object Condition="$PlayerType == 'SmartCashless'" Name="ECashActionProcessor" Type="BallyTech.Sds.Interaction.SmartCardScreen.SmartCardEcashActionProcessor, BallyTech.Sds">
+          <Property Name="Name" Value="ECash"/>
+          <Property Name ="Egm" Ref ="EgmModel"/>
+          <Property Name ="Model" Ref ="SdsModel"/>
+	  <Property Name="LatchingIdReaderAction" Condition="$CardReader == 'Pcsc'" Ref="LatchingIdReaderActionHandler" />
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+          <Property Name="PlayerTrackingSystem" Ref="PlayerTrackingSystem" />
+          <Property Name="AccountAccessProvider" Ref="AccountAccessProvider"/>
+          <Property Name="EmployeeSession" Ref="EmployeeSessionController"/>
+          <Property Name="G2SLink" Ref="G2SModel" />
+          <Property Name="ECashMessageTimeOut" Value="0:00:10" />
+          <Property Name ="IdReader" Ref ="IdReader"/>
+          <Property Name="ECashMessageMatchers">
+            <List>
+              <Object Type="BallyTech.Sds.Model.ECashAccountLockedMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="Invalid PIN - Account Locked" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashInvalidPinMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="Invalid Pin" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.BalanceStartMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="^[^(?:\&amp;|\,=)]*[?:\&amp;|\,]+" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashBalanceMatcher, BallyTech.Sds">
+                <!-- MYPOINTS= 100.00, MYFREEPLAY= 500.00, MYCASHPLAY= 250.00 -->
+                <!-- PtsBal = 100.00 & PromoBal= 500.00 -->
+                <Property Name="Pattern" Value="\s*(([^=]+)\s*=\s*\$?(-?\d+\.?\d*)\s*(?:\&amp;|\,)?\s*)+" />
+                <Property Name="CaptureVariableList">
+                  <List>
+                    <Object Type="BallyTech.Sds.Model.SdsCaptureVariable, BallyTech.Sds">
+                      <Property Name="PropertyName" Value="AccountTag" />
+                      <Property Name="PropertyValueGroupIndex" Value="2" />
+                      <Property Name="CountPropertyName" Value="NumberOfAccounts" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.SdsCaptureVariable, BallyTech.Sds">
+                      <Property Name="PropertyName" Value="AccountBalance" />
+                      <Property Name="PropertyValueGroupIndex" Value="3" />
+                      <Property Name="CountPropertyName" Value="NumberOfAccounts" />
+                    </Object>
+                  </List>
+                </Property>
+                <Property Name="AccountTypeMatchers">
+                  <List>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYPOINTS|PtsBal|Bonus Points)" />
+                      <Property Name="AccountName" Value="Points" />
+                      <Property Name="AccountType" Value="Points" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYFREEPLAY|MYPROMO|PromoBal|Promo Credits)" />
+                      <Property Name="AccountName" Value="Promo" />
+                      <Property Name="AccountType" Value="Promotional" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYCASHPLAY|CashBal)" />
+                      <Property Name="AccountName" Value="Cash" />
+                      <Property Name="AccountType" Value="Cash" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(SDSCASH|Cash)" />
+                      <Property Name="AccountName" Value="SdsCash" />
+                      <Property Name="AccountType" Value="SdsCash" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(SDSNCASH|Freeplay)" />
+                      <Property Name="AccountName" Value="SdsNonCash" />
+                      <Property Name="AccountType" Value="SdsNonCash" />
+                    </Object>
+                  </List>
+                </Property>
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashErrorMatcher, BallyTech.Sds">
+                <!-- Any other message -->
+                <Property Name="Pattern" Value="(.*)" />
+              </Object>
+            </List>
+          </Property>
+        </Object>
+		<Object Condition="$PlayerType == 'Cashless'" Name="ECashActionProcessor" Type="BallyTech.Sds.Interaction.SmartCardScreen.LockingMagCardActionProcessor, BallyTech.Sds">
+          <Property Name="Name" Value="ECash"/>
+          <Property Name ="Egm" Ref ="EgmModel"/>
+          <Property Name ="Model" Ref ="SdsModel"/>
+		  <Property Name="LatchingIdReaderAction" Condition="$CardReader == 'Pcsc'" Ref="LatchingIdReaderActionHandler" />
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+          <Property Name="PlayerTrackingSystem" Ref="PlayerTrackingSystem" />
+          <Property Name="AccountAccessProvider" Ref="AccountAccessProvider"/>
+          <Property Name="EmployeeSession" Ref="EmployeeSessionController"/>
+          <Property Name="G2SLink" Ref="G2SModel" />
+          <Property Name="ECashMessageTimeOut" Value="0:00:10" />
+          <Property Name ="IdReader" Ref ="IdReader"/>
+          <Property Name="ECashMessageMatchers">
+            <List>
+              <Object Type="BallyTech.Sds.Model.ECashAccountLockedMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="Invalid PIN - Account Locked" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashInvalidPinMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="Incorrect PIN" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.BalanceStartMatcher, BallyTech.Sds">
+                <Property Name="Pattern" Value="^[^(?:\&amp;|\,=)]*[?:\&amp;|\,]+" />
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashBalanceMatcher, BallyTech.Sds">
+                <!-- MYPOINTS= 100.00, MYFREEPLAY= 500.00, MYCASHPLAY= 250.00 -->
+                <!-- PtsBal = 100.00 & PromoBal= 500.00 -->
+                <Property Name="Pattern" Value="\s*(([^=]+)\s*=\s*\$?(-?\d+\.?\d*)\s*(?:\&amp;|\,)?\s*)+" />
+                <Property Name="CaptureVariableList">
+                  <List>
+                    <Object Type="BallyTech.Sds.Model.SdsCaptureVariable, BallyTech.Sds">
+                      <Property Name="PropertyName" Value="AccountTag" />
+                      <Property Name="PropertyValueGroupIndex" Value="2" />
+                      <Property Name="CountPropertyName" Value="NumberOfAccounts" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.SdsCaptureVariable, BallyTech.Sds">
+                      <Property Name="PropertyName" Value="AccountBalance" />
+                      <Property Name="PropertyValueGroupIndex" Value="3" />
+                      <Property Name="CountPropertyName" Value="NumberOfAccounts" />
+                    </Object>
+                  </List>
+                </Property>
+                <Property Name="AccountTypeMatchers">
+                  <List>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYPOINTS|PtsBal|Bonus Points)" />
+                      <Property Name="AccountName" Value="Points" />
+                      <Property Name="AccountType" Value="Points" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYFREEPLAY|MYPROMO|PromoBal|Promo Credits)" />
+                      <Property Name="AccountName" Value="Promo" />
+                      <Property Name="AccountType" Value="Promotional" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(MYCASHPLAY|CashBal)" />
+                      <Property Name="AccountName" Value="Cash" />
+                      <Property Name="AccountType" Value="Cash" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(SDSCASH|Cash)" />
+                      <Property Name="AccountName" Value="SdsCash" />
+                      <Property Name="AccountType" Value="SdsCash" />
+                    </Object>
+                    <Object Type="BallyTech.Sds.Model.AccountTypeMatcher, BallyTech.Sds">
+                      <Property Name="Pattern" Value="(SDSNCASH|Freeplay)" />
+                      <Property Name="AccountName" Value="SdsNonCash" />
+                      <Property Name="AccountType" Value="SdsNonCash" />
+                    </Object>
+                  </List>
+                </Property>
+              </Object>
+              <Object Type="BallyTech.Sds.Model.ECashErrorMatcher, BallyTech.Sds">
+                <!-- Any other message -->
+                <Property Name="Pattern" Value="(.*)" />
+              </Object>
+            </List>
+          </Property>
+        </Object>
+        <Object Condition="$Server == 'Sds'" Name="EmployeeActionProcessor" Type="BallyTech.Sds.Interaction.Employee.EmployeeActionProcessor, BallyTech.Sds">
+          <Property Name="Name" Value="Employee" />
+          <Property Name ="SdsModel" Ref ="SdsModel"/>
+          <Property Name ="Egm" Ref ="EgmModel"/>
+          <Property Name="PlatformInfo" Ref="PlatformInfoModel" />   
+          <Property Name="GameCapProvider" Ref="GameCapProvider" />		  
+          <Property Name="EmployeeSession" Ref="EmployeeSessionController"/>
+		  <Property Name="TaxFormHandler" Ref="TaxFormHandler"/>	
+          <Property Name="IdReader" Ref="IdReader" />
+          <Property Name="DoorStatusListener" Ref="DoorStatusModel"/>
+        </Object>
+		<Object Condition="$EnableRomSignature == 'true'" Name="GameRomVerificationActionProcessor" Type="BallyTech.Sds.Interaction.GameRomVerificationActionProcessor, BallyTech.Sds">
+          <Property Name="Name" Value="GameRomSignatureVerification" />
+          <Property Name ="SoftwareAuthentication" Ref ="GameRomVerification"/>
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'" Name="AcscEmployeeActionProcessor" Type="BallyTech.Acsc.Interaction.Employee.AcscEmployeeActionProcessor, BallyTech.Acsc.Interaction">
+          <Property Name ="Name" Value ="Employee"/>
+          <Property Name ="Model" Ref ="AcscModel"/>
+          <Property Name ="ResponseListener" Ref ="AcscModel"/>
+          <Property Name ="CardState" Ref ="IdReader"/>
+          <Property Name ="ActionUrls" Ref="ActionUrls">
+            <Object Name="ActionUrls" Type="BallyTech.Acsc.Interaction.Employee.ActionUrls, BallyTech.Acsc.Interaction">
+              <Property Name ="OnNavigateTo" Value ="action/Employee/OnNavigateTo" />
+              <Property Name ="EgmConfigUrl" Value ="action/Employee/OnNavigateTo"/>
+              <Property Name ="iVIEWConfigUrl" Value ="action/Employee/OnNavigateTo"/>
+              <Property Name ="CreditPlayTestMainUrl" Value ="action/Employee/OnNavigateTo"/>
+              <Property Name ="RebootUrl" Value ="action/Employee/Reboot"/>
+              <Property Name ="EnableGameUrl" Value ="action/Employee/EnableGame"/>
+              <Property Name ="DisableGameUrl" Value ="action/Employee/DisableGame" />
+              <Property Name ="RamClearUrl" Value ="action/Employee/FlushBBRam"/>
+              <Property Name ="CalibrateUrl" Value ="action/Employee/Calibrate"/>
+              <Property Name ="ReturnSlotOnline" Value ="action/Employee/ReturnSlotOnline" />
+              <Property Name ="SetCouponRedeemTicketMethodUrl" Value ="action/Employee/SetCouponRedeemMethod" />
+              <Property Name ="SetCouponRedeemCouponMethodUrl" Value ="action/Employee/SetCouponRedeemMethod" />
+              <Property Name ="SetCouponRedeemAutoMethodUrl" Value ="action/Employee/SetCouponRedeemMethod" />
+              <Property Name ="SetAssetNumber" Value ="action/AssetNumber/PromptAssetNumber" />
+              <Property Name ="EnableTicketRedemption" Value ="action/Employee/EnableTicketRedemption" />
+              <Property Name ="DisableTicketRedemption" Value ="action/Employee/DisableTicketRedemption" />
+            </Object>
+          </Property>
+          <Property Name="EmployeeSession" Ref="EmployeeSessionController"/>
+          <Property Name="EmployeeConfigurations">
+            <Object Name="EmployeeConfigurations" Type="BallyTech.Acsc.Interaction.Employee.EmployeeConfigurations, BallyTech.Acsc.Interaction">
+              <Property Name ="Model" Ref ="AcscModel"/>
+              <Property Name ="IsRecallAvailableForAttendant" Value ="true"/>
+              <Property Name ="IsBillsInRecallEnabled" Value ="true"/>
+              <Property Name="IsSecureLockOutEnabled" Value="false"/>
+            </Object>
+          </Property>
+        </Object>
+
+        <Object Condition="$Server == 'Acsc-GNS'" Name="FundsTransferActionProcessor" Type="BallyTech.Acsc.Interaction.FundsTransfer.AcscFundsTransferActionProcessor, BallyTech.Acsc.Interaction">
+          <Property Name="Name" Value="FundsTransfer" />
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+          <Property Name ="Model" Ref ="AcscModel"/>
+        </Object>
+
+        <Object Condition="$Server == 'Acsc-GNS'" Name="PowerRewardsActionProcessor" Type="BallyTech.Acsc.Interaction.FundsTransfer.PowerRewardsActionProcessor, BallyTech.Acsc.Interaction">
+          <Property Name="Name" Value="PowerRewards"/>
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+          <Property Name ="Model" Ref ="AcscModel"/>
+        </Object>
+
+        <Object Condition="$Server == 'Acsc-GNS'" Name="PlayerActionProcessor" Type="BallyTech.Acsc.Interaction.Player.PlayerActionProcessor, BallyTech.Acsc.Interaction">
+          <Property Name ="Name" Value ="Player"/>
+          <Property Name ="Model" Ref ="AcscModel"/>
+          <Property Name ="ResponseListener" Ref ="AcscModel"/>
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+        </Object>
+		 <Object Condition="$Server == 'Acsc-GNS'" Name="AlternateAccountLookupActionProcessor" Type="BallyTech.Acsc.Interaction.Player.AlternateAccountLookupActionProcessor, BallyTech.Acsc.Interaction">
+          <Property Name ="Name" Value ="AlternateAccountLookup"/>
+          <Property Name ="AlternateAccountLookup" Ref ="AlternateAccountLookup"/>
+        </Object>		
+        <Object Condition="$Server == 'Acsc-GNS'" Name="AssetNumberActionProcessor" Type="BallyTech.Acsc.Interaction.Employee.AssetNumberActionProcessor, BallyTech.Acsc.Interaction">
+          <Property Name ="Name" Value ="AssetNumber"/>
+          <Property Name ="Model" Ref ="AcscModel"/>
+          <Property Name ="PlatformInfo" Ref="PlatformInfoModel"/>
+	      <Property Name="EmployeeSession" Ref="EmployeeSessionController"/>
+        </Object>
+
+      <!--   <Object Condition="$Server == 'Acsc-GNS'" Name="PreCommitmentActionProcessor" Type="BallyTech.Acsc.Interaction.PreCommitment.AcscPreCommitmentActionProcessor, BallyTech.Acsc.Interaction">
+          <Property Name="Name" Value="PreCommitment"/>
+          <Property Name="Model" Ref="AcscModel" />
+          <Property Name="PreCommitment" Ref="PreCommitment"/>
+        </Object> -->
+
+        <Object Condition="$EgmProtocol != 'Cdk' and ($CardReader == 'SmartCard' or $PlayerType == 'SmartCashless')" Name="SmartCardReaderActionProcessor" Type="BallyTech.SmartCard.Interaction.SmartCardReaderActionProcessor, BallyTech.SmartCard">
+          <Property Name="Name" Value="SmartCardReader" />
+          <Property Name ="Model" Ref ="PhysicalIdReader"/>
+        </Object>
+        <Object Condition="$Server == 'Sds'" Name="ServicesActionProcessor" Type="BallyTech.Sds.Interaction.ServiceActionProcessor, BallyTech.Sds">
+          <Property Name="Name" Value="Services" />
+          <Property Name ="Model" Ref ="SdsModel"/>
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+		  <Property Name="ServiceHandler" Ref="PlayerServiceHandler" />
+        </Object>
+        <Object Name="SessionActionProcessor" Type="BallyTech.PlayerTerminal.Interaction.SessionActionProcessor, BallyTech.PlayerTerminal.Interaction">
+          <Property Name="Name" Value="Session" />
+          <Property Name="DefaultLanguage" Value="ENG"/>
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+          <Property Name="PlayerTrackingSystem" Ref="PlayerTrackingSystem" />
+          <Property Name="IdReader" Ref="IdReader" />
+        </Object>        
+        <Object Name="CookieActionProcessor" Type="BallyTech.PlayerTerminal.Interaction.CookieActionProcessor, BallyTech.PlayerTerminal.Interaction">
+          <Property Name="Name" Value="Cookie" />
+          <Property Name="PlayerSessionController" Ref="PlayerSessionController"/>
+        </Object>
+        <Object Name="HardwareControlActionProcessor" Type="BallyTech.Employee.Interaction.HardwareControlActionProcessor, BallyTech.Employee.Interaction">
+          <Property Name="Name" Value="HardwareControl" />
+        </Object>
+        <Object Name="MtCharlestonActionProcessor" Type="BallyTech.MtCharleston.Interaction.MtCharlestonActionProcessor, BallyTech.MtCharleston">
+          <Property Name="Model" Ref="MezzanineModel"/>
+          <Property Name="Name" Value="MtCharleston" />
+        </Object>
+        <Object Name="ConfigActionProcessor" Type="BallyTech.Employee.Interaction.ConfigActionProcessor, BallyTech.Employee.Interaction">
+          <Property Name="Name" Value="Config" />
+          <Property Name ="PlatformInfo" Ref="PlatformInfoModel"/>
+          <Property Name="FloorService" Ref ="FloorServiceModel"/>
+          <Property Name="Egm" Ref ="EgmModel"/>
+          <Property Name="ConfigScreenPin" Value="4321"/>
+          <Property Name="TouchscreenExeWithPath" Value="C:\iview\iViewLauncher\TouchScreen.exe"/>
+          <Property Name="TouchscreenExeName" Value="TouchScreen.exe"/>
+        </Object>
+		
+		<Object  Name="PreCommitmentActionProcessor" Type="BallyTech.PreCommitment.Interaction.PreCommitmentActionProcessor, BallyTech.PreCommitment">
+          <Property  Name="Name" Value="PreCommitment"/>		 
+          <Property Condition="$Server == 'Sds'" Name="PreCommitment" Ref="SdsPreCommitment"/>	  
+		  <Property Condition="$Server == 'Acsc-GNS'" Name="PreCommitment" Ref="AcscPreCommitment"/>   		  
+        </Object>
+        <!-- <Object Condition="$Server == 'Sds'" Name="SystemNotificationActionProcessor" Type="BallyTech.Sds.Interaction.SystemNotificationActionProcessor, BallyTech.Sds"> -->
+          <!-- <Property Name="Name" Value="SystemNotification"/> -->
+          <!-- <Property Name="GeneralNotificationDisplay" Ref="GeneralNotificationDisplay"/> -->
+		<!-- </Object> -->
+		
+	<Object Name="ContentServerActionProcessor" Type="BallyTech.PlatformInformation.Interaction.ContentServerActionProcessor, BallyTech.PlatformInformation">
+	  <Property Name="Name" Value="ContentServer"/>
+          <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+	</Object>
+		
+		   <Object Condition="$Server == 'Sds'" Name="RGWebEnrollmentActionProcessor" Type="BallyTech.PreCommitment.Interaction.RGWebEnrollmentActionProcessor, BallyTech.PreCommitment">
+          <Property Name="Name" Value="RGWeb"/>
+          <Property Name="PreCommitment" Ref="SdsPreCommitment"/>
+        </Object>
+		    <Object Condition="$Server == 'Sds'" Name="GameCapActionProcessor" Type="BallyTech.Sds.Interaction.GameCapActionProcessor, BallyTech.Sds">
+          <Property Name="Name" Value="GameCap" />
+          <Property Name="gameCapProvider" Ref="GameCapProvider"/>
+        </Object>
+	<Object Condition="$Server == 'Sds'" Name="SiteScheduleActionProcessor" Type="BallyTech.Sds.Interaction.SiteScheduleActionProcessor, BallyTech.Sds">
+          <Property Name="Name" Value="SiteSchedule"/>
+          <Property Name="Model" Ref="SdsModel"/>
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'" Name="EliteBonusingDeviceActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.EliteBonusingDeviceActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="Ebs" />
+          <Property Name="Model" Ref="EliteBonusingClientModel" />
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'" Name="DynamicRandomBonusingActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.DynamicRandomBonusingActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="Drb" />
+          <Property Name="Model" Ref="EliteBonusingClientModel" />
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'" Name="VirtualRaceActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.VirtualRaceActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="VirtualRacing" />
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'" Name="TournamentActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.TournamentActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="Tournaments" />
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'" Name="PowerMysteryActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.PowerMysteryActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="PowerMystery" />
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'" Name="LottoActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.LottoActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="Lotto" />
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'" Name="MonopolyActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.MonopolyActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="Monopoly" />
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'" Name="MobileCreditsActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.MobileCreditsActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="MobileCredits" />
+        </Object>
+		<Object Condition="$EbsEnabledatSite == 'true'" Name="DoubleWinGameActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.DoubleWinGameActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="DoubleWinGame" />
+        </Object>
+		<Object Condition="$EbsEnabledatSite == 'true'" Name="OfferActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.OfferActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="Offer" />
+        </Object>
+		<Object Condition="$EbsEnabledatSite == 'true'" Name="RewardsQuestActionProcessor" Type="BallyTech.EliteBonusing.v13.Client.Interaction.RewardsQuestActionProcessor, BallyTech.EliteBonusing.v13.Client">
+          <Property Name="Name" Value="RewardsQuest" />
+        </Object>
+      </List>
+    </Property>
+  </Object>
+ <Object Name="ConfigItems" Type="BallyTech.Gtm.Launcher.ConfigurationVariableList, BallyTech.Gtm.Launcher">
+    <Property Name ="ConfigItems">
+      <List ItemType="BallyTech.Gtm.Launcher.ConfigurationVariable, BallyTech.Gtm.Launcher">
+        <Object>        
+		<Property Name="Title" Value="EGM Protocol Version" />          
+		<Property Name="PropertyName" Value="Egm.GameVersion" />
+        </Object>
+        <Object Condition="$Server == 'Sds'">
+          <Property Name="Title" Value="EGM Link Status" />
+          <Property Name="PropertyName" Value="EmployeeActionProcessor.SdsModel.GameLink.LinkStatus" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="EGM Link Status" />
+          <Property Name="PropertyName" Value="AcscModel.GameLink.LinkStatus" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="Accounting Denomination($)" />
+          <Property Name="PropertyName" Value="Egm.AccountingDenomination" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="Current Game Denomination($)" />
+          <Property Name="PropertyName" Value="Egm.CurrentGameDenomination" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="Machine ID" />
+          <Property Name="PropertyName" Value="Egm.GameId" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="EGM GSA Manufacturer Code" />
+          <Property Name="PropertyName" Value="FloorServiceModel.ManufacturerCode" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="EGM Serial #" />
+          <Property Name="PropertyName" Value="Egm.SerialNumber" />
+        </Object>
+        <Object Condition="$Server == 'Sds'">
+          <Property Name="Title" Value="Asset #" />
+          <Property Name="PropertyName" Value="Egm.AssetNumber" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="Asset #" />
+          <Property Name="PropertyName" Value="AcscModel.AssetNumber" />
+        </Object>
+        <Object>
+          <Property Condition="$DeviceName == 'iVIEW'" Name="Title" Value="iVIEW OS Version" />
+	  <Property Condition="$DeviceName == 'iVISTA'" Name="Title" Value="iVISTA OS Version" />
+	      <Property Name="PropertyName" Value="PlatformInfoModel.OSVersion" />
+        </Object>
+		<Object  Condition="!(defined? 'UseMtCharlestonMezzanine')">
+          <Property Name="Title" Value="Cypress Firmware Version" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.EpiFwVersion" />
+        </Object>
+		<Object  Condition="defined? 'UseMtCharlestonMezzanine'">
+          <Property Name="Title" Value="STM Firmware Version" />
+          <Property Name="PropertyName" Value="MezzanineModel.STMFullVersionNumber" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="Application Version" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.ApplicationVersion" />
+        </Object>
+        <Object>
+          <Property Condition="$DeviceName == 'iVIEW'" Name="Title" Value="iVIEW MAC Address" />
+	  <Property Condition="$DeviceName == 'iVISTA'" Name="Title" Value="iVISTA MAC Address" />
+	      <Property Name="PropertyName" Value="PlatformInfoModel.MacAddress" />
+        </Object>
+        <Object>
+          <Property Condition="$DeviceName == 'iVIEW'" Name="Title" Value="iVIEW IP Address" />
+	  <Property Condition="$DeviceName == 'iVISTA'" Name="Title" Value="iVISTA IP Address" />
+	      <Property Name="PropertyName" Value="PlatformInfoModel.IPAddress" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="Content Version" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.ContentVersion" />
+        </Object>
+		<Object>
+          <Property Name="Title" Value="NTP Server Address" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.NtpServerAddress" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="NTP Server Time Zone" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.TimeZoneName" />
+        </Object>
+        <Object>
+         <Property Condition="$DeviceName == 'iVIEW'" Name="Title" Value="iVIEW Storage Card Size" />
+		 <Property Condition="$DeviceName == 'iVISTA'" Name="Title" Value="iVISTA Storage Card Size" />
+	     <Property Name="PropertyName" Value="PlatformInfoModel.SdCardSize" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="FloorService IP" />
+          <Property Name="PropertyName" Value="FloorServiceModel.FloorServiceHost" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="Location" />
+          <Property Name="PropertyName" Value="FloorServiceModel.Location" />
+        </Object>
+        <Object  Condition="$Server == 'Sds'">
+          <Property Name="Title" Value="Host Link Status (SDS)" />
+          <Property Name="PropertyName" Value="SdsModel.Config.LinkStatus" />
+        </Object>
+        <Object  Condition="$Server == 'Sds'">
+          <Property Name="Title" Value="Host Location (SDS)" />
+          <Property Name="PropertyName" Value="SdsModel.Config.HostLocation" />
+        </Object>
+        <Object  Condition="$Server == 'Sds'">
+          <Property Name="Title" Value="Host Multicast Ip (SDS)" />
+          <Property Name="PropertyName" Value="SdsModel.Config.HostMultiCastIp" />
+        </Object>
+        <Object  Condition="$Server == 'Sds'">
+          <Property Name="Title" Value="Host Port (SDS)" />
+          <Property Name="PropertyName" Value="SdsModel.Config.HostPort" />
+        </Object>
+        <Object  Condition="$Server == 'Sds'">
+          <Property Name="Title" Value="Listening Port (SDS)" />
+          <Property Name="PropertyName" Value="SdsModel.Config.ListeningPort" />
+        </Object>
+		 <Object Condition="$Server == 'Sds'">
+          <Property Name="Title" Value="Multisite List" />
+          <Property Name="PropertyName" Value="EmployeeActionProcessor.SdsModel.IntrepidOptions.MultiSiteList" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="GearBox IP" />
+          <Property Name="PropertyName" Value="AcscModel.GearboxIp" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="Host Link Status(Acsc)" />
+          <Property Name="PropertyName" Value="AcscModel.HostLinkStatus" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="GameNet Server(Acsc)" />
+          <Property Name="PropertyName" Value="AcscModel.ConfigParameters.GameNetServerOnline" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="Coupon Server(Acsc)" />
+          <Property Name="PropertyName" Value="AcscModel.ConfigParameters.CouponServerOnline" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="Slot Manufacturer(Acsc)" />
+          <Property Name="PropertyName" Value="AcscModel.ConfigParameters.ManufacturerCode" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="Slot Zone(Acsc)" />
+          <Property Name="PropertyName" Value="AcscModel.ConfigParameters.Zone" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="Slot Location(Acsc)" />
+          <Property Name="PropertyName" Value="AcscModel.ConfigParameters.Location" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="Slot Denomination Code(Acsc)" />
+          <Property Name="PropertyName" Value="AcscModel.ConfigParameters.DenominationStatus" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="iVIEW NTCode Version" />
+          <Property Name="PropertyName" Value="AcscModel.NtCodeVersion" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="EDrop Withdraw Enabled" />
+          <Property Name="PropertyName" Value="AcscModel.ConfigParameters.EnableEWithdraw" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="EDrop Deposit Enabled" />
+          <Property Name="PropertyName" Value="AcscModel.ConfigParameters.EnableEDeposit" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="CanDepositNonCashable" />
+          <Property Name="PropertyName" Value="Egm.Cabinet.Snapshot.CanDepositNonCashable" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS'">
+          <Property Name="Title" Value="CanTransferPromotional" />
+          <Property Name="PropertyName" Value="Egm.CanTransferPromotionalCredits" />
+        </Object>
+        <Object Condition="$Server == 'Acsc-GNS' and $CardReader == 'Kcsm'">
+          <Property Name="Title" Value="EPIQ Version" />
+          <Property Name="PropertyName" Value="KcsmModel.EpiQVersion" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="G2S Host IP" />
+          <Property Name="PropertyName" Value="FloorServiceModel.G2SHost" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="Host Link Status (G2S)" />
+          <Property Name="PropertyName" Value="G2SModel.LinkStatus" />
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'">
+          <Property Name="Title" Value="EBS Url" />
+          <Property Name="PropertyName" Value="EliteBonusingClientModel.EbsPeerLocation" />
+        </Object>
+        <Object Condition="$EbsEnabledatSite == 'true'">
+          <Property Name="Title" Value="EBS Communication Status" />
+          <Property Name="PropertyName" Value="EliteBonusingClientModel.EbsCommsStatus" />
+        </Object>    
+		<Object Condition="$Server == 'Sds'">
+          <Property Name="Title" Value="PC Web Url" />
+          <Property Name="PropertyName" Value="SdsModel.Config.PCWebUrl" />
+        </Object>
+        <Object Condition="$CardReader == 'Kcsm'">
+          <Property Name="Title" Value="Card Reader Firmware Version" />
+          <Property Name="PropertyName" Value="KcsmModel.CardReaderFirmwareVersion" />
+        </Object>
+		<Object>
+          <Property Name="Title" Value="EGM Protocol" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.EgmProtocol" />
+		</Object>
+        <Object>
+          <Property Name="Title" Value="Card Reader" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.CardReader" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="Player Type" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.PlayerType" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="ProgressiveEnabled" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.ProgressiveOption" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="AdditionalOption" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.AdditionalOption" />
+        </Object>
+		 <Object>
+          <Property Name="Title" Value="Content Description" />
+          <Property Name="PropertyName" Value="PlatformInfoModel.ContentDescription" />
+        </Object>
+        <Object >
+          <Property Name="Title" Value="System Time" />
+          <Property Name="PropertyName" Value="PlatformInfo.CurrentSystemTime" />
+        </Object>
+		<Object Condition="$EgmProtocol == 'IDP'">
+			<Property Name="Title" Value="IDP Interface Server URL" />
+			<Property Name="PropertyName" Value="IDPModel.Url" />
+        </Object>
+		<Object Condition="$EgmProtocol == 'IDP'">
+			<Property Name="Title" Value="IDP Interface Server Communication Status" />
+			<Property Name="PropertyName" Value="IDPModel.ConnectedStatus" />
+        </Object>
+		<Object Condition="$EgmProtocol == 'G2S'">
+			<Property Name="Title" Value="SMIB IP Address" />
+			<Property Name="PropertyName" Value="IntralotG2SModel.EgmLocation" />
+        </Object>
+		<Object Condition="$EgmProtocol == 'G2S'">
+			<Property Name="Title" Value="SMIB ID" />
+			<Property Name="PropertyName" Value="IntralotG2SModel.EgmId" />
+        </Object>
+		<Object Condition="$EgmProtocol == 'G2S'">
+			<Property Name="Title" Value="iVIEW IP Address(Private)" />
+			<Property Name="PropertyName" Value="IntralotG2SModel.iVIEWPrivateIPAddress" />
+        </Object>
+		 <Object>
+          <Property Name="Title" Value="DM NXP Firmware" />
+          <Property Name="PropertyName" Value="DMModel.FWVersion" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="DM Genesis Firmware" />
+          <Property Name="PropertyName" Value="DMModel.GenesisFWVersion" />
+        </Object>
+        <Object>
+          <Property Name="Title" Value="DM NXP Sha1" />
+          <Property Name="PropertyName" Value="DMModel.nxpSHA" />
+        </Object>
+         <Object>
+          <Property Name="Title" Value="DM Genesis CRC" />
+          <Property Name="PropertyName" Value="DMModel.GenesisCRC" />
+        </Object>
+         <Object>
+          <Property Name="Title" Value="DM Hardware Version" />
+          <Property Name="PropertyName" Value="DMModel.DMHardwareVer" />
+        </Object>        
+      </List>
+    </Property>
+  </Object>
+  <Object Name="GtmModel" Type="BallyTech.Gtm.Launcher.GtmModel, BallyTech.Gtm.Launcher">
+    <Property Condition="$Server == 'Sds'" Name="AccountAccessProvider" Ref="AccountAccessProvider" />
+    <Property Name="DisplayManager" Ref="DisplayManager" />
+    <Property Condition="$Server == 'Sds'" Name="SdsModel" Ref="SdsModel" />
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="EgmButtonModel" Ref="EgmButtonModel" />
+    <Property Condition="$EgmProtocol == 'Asp'" Name="AspModel" Ref="EgmModel" />
+    <Property Condition="$EgmProtocol == 'XSeries'" Name="NswModel" Ref="EgmModel" />
+    <Property Condition="$EgmProtocol == 'Grips'" Name="GripsModel" Ref="EgmModel" />
+	<Property Condition="$EgmProtocol == 'IDP'" Name="IDPModel" Ref="EgmModel" />
+	<Property Name="Egm" Ref="EgmModel" />
+    <Property Name="G2SModel" Ref="G2SModel" />
+    <Property Condition="$Server == 'Acsc-GNS'" Name="AcscModel" Ref="AcscModel" />
+    <Property Condition="$Server == 'Acsc-GNS'" Name="AcscFundsTransferActionProcessor" Ref="FundsTransferActionProcessor" />
+    <Property Name="IdReader" Ref="IdReader" />
+    <Property Name="PhysicalIdReader" Ref="PhysicalIdReader" />
+    <Property Condition="$CardReader == 'Kcsm'" Name="Illumination" Ref="PhysicalIdReader" />
+    <Property Condition="$CardReader == 'Kcsm'" Name="KcsmModel" Ref="PhysicalIdReader" />
+    <Property Name="FloorServiceModel" Ref="FloorServiceModel"/>
+    <Property Name="PlatformInfoModel" Ref="PlatformInfoModel"/>
+    <Property Name="DMModel" Ref="DmModel" />
+    <Property Name="PlatformInfo" Ref="PlatformInfoModel" />
+    <Property Name="PlayerSessionController" Ref="PlayerSessionController" />
+    <Property Name="PlayerTrackingSystem" Ref="PlayerTrackingSystem" />
+	<Property Name="EnhancedDownloadModel" Ref="EnhancedDownloadModel" />
+    <Property Name="Schedule" Ref="Schedule" />
+    <Property Name="SessionActionProcessor" Ref="SessionActionProcessor" />
+    <Property Name="EmployeeSession" Ref ="EmployeeSessionController"/>
+    <Property Name="PackageService" Ref="PackageServiceModel" />
+    <Property Condition="$CardReader == 'SmartCard'" Name="DiagnosticServiceModel" Ref="DiagnosticServiceModel" />
+    <Property Condition="$Server == 'Sds'" Name="EmployeeActionProcessor" Ref="EmployeeActionProcessor"/>
+    <Property Condition="$Server == 'Sds'" Name="ECashActionProcessor" Ref="ECashActionProcessor"/>
+    <Property Condition="$Server == 'Sds'" Name="ServicesActionProcessor" Ref="ServicesActionProcessor"/>
+    <Property Name="CookieActionProcessor" Ref="CookieActionProcessor"/>
+    <Property Name="ConfigActionProcessor" Ref="ConfigActionProcessor"/>    
+    <Property Condition="$Server == 'Sds'" Name="SiteScheduleActionProcessor" Ref="SiteScheduleActionProcessor"/> 
+    <Property Condition="$Server == 'Acsc-GNS'" Name="AcscEmployeeActionProcessor" Ref="AcscEmployeeActionProcessor"/>
+    <Property Condition="$Server == 'Acsc-GNS'" Name="PlayerActionProcessor" Ref="PlayerActionProcessor"/>
+    <Property Condition="$Server == 'Acsc-GNS'" Name="AcscPowerRewardsActionProcessor" Ref="PowerRewardsActionProcessor"/>
+   <!--  <Property Condition="$Server == 'Acsc-GNS'" Name="AcscPreCommitmentActionProcessor" Ref="PreCommitmentActionProcessor"/> -->
+    <Property Condition="$Server == 'Acsc-GNS'" Name="AssetNumberActionProcessor" Ref="AssetNumberActionProcessor" />
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="EliteBonusingClientModel" Ref="EliteBonusingClientModel" />
+	  <Property Condition="$EbsEnabledatSite == 'true'" Name="EliteBonusingDeviceActionProcessor" Ref="EliteBonusingDeviceActionProcessor" />
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="DynamicRandomBonusingActionProcessor" Ref="DynamicRandomBonusingActionProcessor" />
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="VirtualRaceActionProcessor" Ref="VirtualRaceActionProcessor"/>
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="PowerMysteryActionProcessor" Ref="PowerMysteryActionProcessor"/>
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="LottoActionProcessor" Ref="LottoActionProcessor"/> 
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="MobileCreditsActionProcessor" Ref="MobileCreditsActionProcessor"/>
+	<Property Condition="$EbsEnabledatSite == 'true'" Name="MonopolyActionProcessor" Ref="MonopolyActionProcessor"/>
+	<Property Condition="$EbsEnabledatSite == 'true'" Name="DoubleWinGameActionProcessor" Ref="DoubleWinGameActionProcessor"/>
+	<Property Condition="$EbsEnabledatSite == 'true'" Name="OfferActionProcessor" Ref="OfferActionProcessor"/>
+	 <Property Condition="$EbsEnabledatSite == 'true'" Name="RewardsQuestActionProcessor" Ref="RewardsQuestActionProcessor"/>
+    <Property Condition="$EbsEnabledatSite == 'true'" Name="I2STransportModel" Ref="I2STransportModel" />
+    <Property Condition="$CardReader == 'SmartCard'" Name="SmartCardStatus" Ref="CardStatus"/>
+    <Property Name="DoorStatusModel" Ref="DoorStatusModel"/>   
+	<Property Condition="$RtsEnabledatSite == 'true'" Name="RtsModel" Ref="RealTimeServiceModel"/>   
+    <Property Name="ConfigList" Ref="ConfigItems" />
+    <Property Condition="$Server == 'Sds'" Name="GameCapInteraction" Ref="GameCapInteraction"/>
+	<Property Condition="$Server == 'Sds'" Name="PreCommitment" Ref="PlayerPreCommitment"/> 
+    <Property Name="PreCommitmentInteraction" Ref="PreCommitmentInteraction"/>  	 
+	<Property Condition="$PlayerType == 'SmartCashless'" Name="SmartCardStatus" Ref="CardStatus"/>
+    <Property Condition="$CardReader == 'Pcsc' and $PlayerType != 'SmartCashless'" Name="MagCardStatus" Ref="CardStatus"/>
+    <Property Condition="$PlayerType == 'SmartCashless' and $EgmProtocol != 'Cdk'" Name="SmartCardStatus" Ref="CardStatus"/>
+	<Property Name="AccountLookupCoordinator" Ref="AccountLookupCoordinatorModel"/> 
+    <Property Name="MezzanineModel" Ref="MezzanineModel"/>  	 
+    <!--<Property Condition="$Server == 'Sds'" Name="PCInteraction" Ref="PCInteraction"/>-->
+	<Property Condition="$EnableRomSignature == 'true'" Name="GameRomVerificationInteraction" Ref="GameRomVerification" />
+  </Object>
+</Objects>

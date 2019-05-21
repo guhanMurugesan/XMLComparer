@@ -16,7 +16,7 @@ namespace XmlComparer.ConsoleApp
                // var file1 = @".\TestFiles\a1.config";
                 //var file2 = @".\TestFiles\a2.config";
                 var file1 = @"D:\Perforce\depot\iView\GTM_Branches\Release\iVux21C_24.00.00\Content\IVW3\DHL\Bally\SoftGmu\Config\AppsConfig\Models.xml";
-                var file2 = @"D:\Perforce\depot\iView\GTM_Branches\Release\iVux21C_24.00.00\Content\IVW3\DHL\Bally\SoftGmu\Config\AppsConfig\Models1.xml";
+                var file2 = @"D:\Perforce\depot\iView\GTM_Branches\Release\iVux21C_24.00.00\Content\IVW3\DHD\Bally\SoftGmu\Config\AppsConfig\Models.xml";
                 
                 var handler = new TestXmlCompareHandler();
 

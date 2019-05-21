@@ -15,9 +15,18 @@ namespace XmlComparer
     {
         private readonly IXmlCompareHandler xmlCompareHandler;
 
+        public List<ElementAddedEventArgs> additions = new List<ElementAddedEventArgs>();
+        public List<ElementChangedEventArgs> changes = new List<ElementChangedEventArgs>();
+        public List<ElementRemovedEventArgs> removals = new List<ElementRemovedEventArgs>();
+
         public Comparer(IXmlCompareHandler xmlCompareHandler)
         {
             this.xmlCompareHandler = xmlCompareHandler;
+        }
+
+        public Comparer()
+        {
+
         }
 
         private class Elem
@@ -34,17 +43,22 @@ namespace XmlComparer
 
             public bool isChecked { get; set; }
 
+            public int Level { get; set; }
+
+            public int IsChildrenProcessed { get; set; }
+
             public static Elem Create(XElement element, int source)
             {
-                var kv = element.GetBestKeyValueInfo();
+                //var kv = element.GetBestKeyValueInfo();
                 var res = new Elem
                 {
                     LineNumber = element.LineNumber(),
                     Element = element,
-                    KeyValueInfo = kv,
+                    KeyValueInfo = null,
                     Source = source,
-                    XPath = element.GetXPath(kv),
+                    XPath = element.GetXPath(null)
                 };
+                res.Level = res.XPath.GetLevel();
                 return res;
             }
 
@@ -57,6 +71,7 @@ namespace XmlComparer
 
         public void Compare(Stream stream1, Stream stream2, IXmlCompareHandler callback)
         {
+            var stopWatch = new Stopwatch();
             var loadOptions = LoadOptions.SetBaseUri | LoadOptions.SetLineInfo;
             const int leftId = 1;
             const int rightId = 2;
@@ -67,35 +82,28 @@ namespace XmlComparer
             var nsm1 = new XmlNamespaceManagerEnhanced(doc1);
             var nsm2 = new XmlNamespaceManagerEnhanced(doc2);
 
+
             var doc1Descendants = doc1.Descendants()
-                .Where(a => a != doc1.Root)
-                .Select(a => new { Source = leftId, Element = a, IsModified = false });
+                .Where(a => a != doc1.Root).Select(a => Elem.Create(a, leftId)).ToList();
 
             var doc2Descendants = doc2.Descendants()
-                .Where(a => a != doc2.Root)
-                .Select(a => new { Source = rightId, Element = a, IsModified = false });
+                .Where(a => a != doc2.Root).Select(a => Elem.Create(a, rightId)).ToList();
 
-            var doc1DescendantsDiff = doc1Descendants
-                .Where(a => !doc2Descendants.Any(a2 => ElementsAreEqual(a2.Element, a.Element)))
-                .Select(a => Elem.Create(a.Element, a.Source))
-                .ToList();
-
-            var doc2DescendantsDiff = doc2Descendants
-                .Where(a => !doc1Descendants.Any(a1 => ElementsAreEqual(a1.Element, a.Element)))
-                .Select(a => Elem.Create(a.Element, a.Source))
-                .ToList();
 
             var xPathsAdded = new List<string>();
             var xPathsRemoved = new List<string>();
             var xPathsChanged = new List<string>();
 
-            var additions = new List<ElementAddedEventArgs>();
-            var changes = new List<ElementChangedEventArgs>();
-            var removals = new List<ElementRemovedEventArgs>();
+            
 
-            foreach (var item1 in doc1DescendantsDiff)
+            stopWatch.Start();
+            foreach (var item1 in doc1Descendants)
             {
-                var groupCollection = doc2DescendantsDiff.Where(x => XPathComparer.CompareParent(item1.XPath, x.XPath)).ToList();
+                //taken same levels
+                var levelCollection = doc2Descendants.Where(x => x.Level == item1.Level);
+                //taken same parents
+                var groupCollection = levelCollection.Where(x => XPathComparer.CompareParent(item1.XPath, x.XPath));
+                //take matched children
                 var itemCollection = groupCollection.Where(a => XPathComparer.Compare(item1.XPath, a.XPath)).ToList();
 
                 //handle properties used in a list
@@ -105,7 +113,10 @@ namespace XmlComparer
                     foreach (var prop in itemCollection)
                     {
                         if (item1.XPath == prop.XPath)
+                        {
                             isExist = true;
+                            prop.isChecked = true;
+                        }
                     }
                     if (!isExist)
                     {
@@ -117,21 +128,27 @@ namespace XmlComparer
                 {
                     var item2 = itemCollection.FirstOrDefault();
 
-                    //property not found; so the property must be removed
+                    if (!groupCollection.ToList().Any() && item2 == null) // group collection will be empty when parent property has changed
+                    {
+                        var changedParentCollection = levelCollection.Where(x => item1.XPath.CompareImmediateParent(x.XPath) && XPathComparer.Compare(item1.XPath, x.XPath));
+                        var isPresent = changedParentCollection.Any();
+                        if (isPresent)
+                        {
+                            changedParentCollection.ToList().ForEach(x => x.isChecked = true);
+                            continue;
+                        }
+                        xPathsRemoved.Add(item1.XPath);
+                        removals.Add(new ElementRemovedEventArgs(item1.XPath, item1.Element, item1.LineNumber));
+                        continue;
+                    }
                     if (item2 == null)
                     {
-                        //removed
-                                if (xPathsRemoved.Any(a => item1.XPath.StartsWith(a)))
-                                {
-                                    // if the node's parent exists in the list of items,
-                                    // there is no need to call the callback
-                                    continue;
-                                }
+                        if (xPathsRemoved.Any(a => item1.XPath.StartsWith(a)))
+                            continue;
 
-                                xPathsRemoved.Add(item1.XPath);
-
-                                removals.Add(new ElementRemovedEventArgs(item1.XPath, item1.Element, item1.LineNumber));
-                                continue;
+                        xPathsRemoved.Add(item1.XPath);
+                        removals.Add(new ElementRemovedEventArgs(item1.XPath, item1.Element, item1.LineNumber));
+                        continue;
                     }
                     else if (item1.XPath != item2.XPath)
                     {
@@ -141,152 +158,26 @@ namespace XmlComparer
                             changes.Add(new ElementChangedEventArgs(item1.XPath, item1.Element, item1.LineNumber, item2.Element, item2.LineNumber));
                         }
                     }
+                    foreach (var item in itemCollection)// marking searchable objects
+                        item.isChecked = true;
                 }
-
-                foreach (var item in itemCollection)
-                    item.isChecked = true;
             }
 
-            var addedCollection = doc2DescendantsDiff.Where(x => !x.isChecked).ToList();
+            var addedCollection = doc2Descendants.Where(x => !x.isChecked).ToList();
 
             foreach (var item1 in addedCollection)
             {
                 if (xPathsAdded.Any(a => item1.XPath.StartsWith(a)))
-                {
-                    // if the node's parent exists in the list of items,
-                    // there is no need to call the callback
                     continue;
-                }
 
                 xPathsAdded.Add(item1.XPath);
 
                 additions.Add(new ElementAddedEventArgs(item1.XPath, item1.Element, item1.LineNumber));
             }
 
-            //var itemsToProcess = doc1DescendantsDiff
-            //    .Concat(doc2DescendantsDiff)
-            //    .OrderBy(a => a.LineNumber).ThenBy(a => a.Source)
-            //    .ToList();
+            stopWatch.Stop();
 
-
-
-
-
-            //foreach (var item in itemsToProcess)
-            //{
-            //    if (xPathsAdded.Any(a => a == item.XPath)
-            //        || xPathsChanged.Any(a => a == item.XPath)
-            //        || xPathsRemoved.Any(a => a == item.XPath)
-            //    )
-            //        continue;
-
-            //    //Console.WriteLine(item.XPath);
-
-            //    var node1 = item.Source != leftId ? default(XElement) : item.Element;
-            //    var node2 = item.Source != rightId ? default(XElement) : item.Element;
-
-            //    // now get item from other side
-            //    switch (item.Source)
-            //    {
-            //        case leftId:
-            //            {
-            //                // get node2
-            //                var e = itemsToProcess.FirstOrDefault(a => a.Source == rightId && XPathComparer.Compare(a.XPath, item.XPath));
-            //                if (e != null)
-            //                {
-            //                    node2 = e.Element;
-            //                }
-            //                break;
-            //            }
-            //        case rightId:
-            //            {
-            //                // get node1
-            //                var e = itemsToProcess.FirstOrDefault(a => a.Source == leftId && XPathComparer.Compare(a.XPath, item.XPath));
-            //                if (e != null)
-            //                {
-            //                    node1 = e.Element;
-            //                }
-            //                break;
-            //            }
-            //        default:
-            //            {
-            //                throw new Exception("Invalid Source " + item + " for item : " + item.XPath);
-            //            }
-            //    }
-
-
-            //    if (node1 != null && node2 != null)
-            //    {
-            //        //CompareAttributes(node1, node2, callback);
-
-            //        // if there are sub-elements, those will be handled separately
-            //        if (node1.HasElements || node2.HasElements)
-            //            continue;
-            //    }
-
-            //    if (node1 == null && node2 != null)
-            //    {
-            //        //added
-            //        if (xPathsAdded.Any(a => item.XPath.StartsWith(a)))
-            //        {
-            //            // if the node's parent exists in the list of items,
-            //            // there is no need to call the callback
-            //            continue;
-            //        }
-
-            //        xPathsAdded.Add(item.XPath);
-
-            //        additions.Add(new ElementAddedEventArgs(item.XPath, node2, node2.LineNumber()));
-            //        continue;
-            //    }
-
-
-            //    if (node1 != null && node2 == null)
-            //    {
-            //        //removed
-            //        if (xPathsRemoved.Any(a => item.XPath.StartsWith(a)))
-            //        {
-            //            // if the node's parent exists in the list of items,
-            //            // there is no need to call the callback
-            //            continue;
-            //        }
-
-            //        xPathsRemoved.Add(item.XPath);
-
-            //        removals.Add(new ElementRemovedEventArgs(item.XPath, node1, node1.LineNumber()));
-            //        continue;
-            //    }
-
-
-            //    if (node1 != null && node2 != null)
-            //    {
-            //        //might have changed
-            //        //compare values
-
-            //        if (xPathsChanged.Any(a => item.XPath.StartsWith(a)))
-            //        {
-            //            // if the node's parent exists in the list of items,
-            //            // there is no need to call the callback
-            //            continue;
-            //        }
-
-            //        xPathsChanged.Add(item.XPath);
-
-            //        var val1 = node1.Value;
-            //        var val2 = node2.Value;
-
-            //        if (string.Equals(val1, val2))
-            //            continue;
-
-            //        //changes.Add(new ElementChangedEventArgs(item.XPath, node1, node1.LineNumber(), node2, node2.LineNumber()));
-            //        continue;
-            //    }
-
-            //    throw new Exception("Invalid scenario while comparing elements: " + item.XPath);
-            //}
-
-
-
+            Console.WriteLine("Elapsed Time {0} ms",stopWatch.ElapsedMilliseconds.ToString());
 
             foreach (var item in removals)
             {
